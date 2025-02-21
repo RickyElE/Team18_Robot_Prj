@@ -1,5 +1,4 @@
 # Team18_Robot_Prj
-# --------------------------------------------------------
 ### The Plant Protection Robot is based on Raspberry Pi 5
 
 ## Introduction
@@ -22,17 +21,13 @@ We will use the wireless technology to make remote-control and monitoring come t
 
 ### 1.3 Team Collaborator
 Leader - Zhihong Xu
-Collaborator - YUWEN WANG
-             - Guining Zhang
-             - Guankai Wang
-             - JUIHSIN CHANG
+
+Collaborator - YUWEN WANG, Guining Zhang, Guankai Wang, JUIHSIN CHANG
 
 ### 1.3 The Arrangement
 Chassis & System Structure - Zhihong Xu
 
-Robotic Arm - Guankai Wang
-            - Guining Zhang
+Robotic Arm - Guankai Wang, Guining Zhang
 
-Vision & Communication - YUWEN WANG
-                       - JUIHSIN CHANG
+Vision & Communication - YUWEN WANG, JUIHSIN CHANG
                        
