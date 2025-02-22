@@ -1,8 +1,10 @@
 #ifndef BMS_H
 #define BMS_H
 
+#include <cstdint>
 #include <iostream>
 #include <fcntl.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
@@ -19,7 +21,7 @@ class BMS{
     float showVoltage();
 
     protected:
-    int readADS7830(int fd, int channel);
+    uint32_t readADS7830(int fd, int channel);
     
 };
 
