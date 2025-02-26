@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Protection Robot</title>
+    <link rel="stylesheet" href="main.css">
+    
+</head>
+<body>
+    <!-- User Account -->
+    <div class="user-account">
+        <button id="accountBtn" class="account-button">
+            <!-- 將使用者名稱的第一個字母作為頭像 -->
+            <span id="userInitial"></span>
+        </button>
+        <div id="dropdownMenu" class="dropdown-menu">
+            <div class="user-info">
+                <div id="userName" class="user-name"></div>
+                <div id="userEmail" class="user-email"></div>
+            </div>
+            <a class="dropdown-item" onclick="handleLogout()">
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="title-container">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="10" rx="2"/>
+            <circle cx="12" cy="5" r="2"/>
+            <path d="M12 7v4"/>
+            <line x1="8" y1="16" x2="8" y2="16"/>
+            <line x1="16" y1="16" x2="16" y2="16"/>
+        </svg>
+        <h1 id="header">Plant Protection Robot</h1>
+    </div>
+    
+    <div class="container">
+        <!-- Left Section - Video -->
+        <div class="left-section">
+            <div id="video-container">
+                <video id="camera-stream" autoplay playsinline></video>
+            </div>
+            <div class="camera-controls">
+                <button id="start-btn">Start Camera</button>
+                <button id="stop-btn" disabled>Stop Camera</button>
+            </div>
+            <div id="error-message"></div>
+        </div>
+
+        <!-- Right Section - Controls -->
+        <div class="right-section">
+            <div class="direction-controls">
+                <button id="up-btn" class="direction-btn">F</button>
+                <button id="left-btn" class="direction-btn">L</button>
+                <button id="right-btn" class="direction-btn">R</button>
+                <button id="down-btn" class="direction-btn">B</button>
+            </div>
+            
+        <div class="camera-controls">
+            <button id="camera-up-btn" class="camera-btn">UP</button>
+            <button id="camera-down-btn" class="camera-btn">DOWN</button>
+        </div>
+
+            <!-- Gauges -->
+            <div class="gauges-container">
+                <!-- Speed Gauge -->
+                <div class="gauge">
+                    <div class="gauge-title">Speed</div>
+                    <svg class="gauge-svg" viewBox="0 0 120 120">
+                        <circle class="gauge-background" cx="60" cy="60" r="50" stroke-dasharray="157" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+                        <polygon id="speed-pointer" class="gauge-pointer" points="60,20 56,60 64,60" transform="rotate(0 60 60)"/>
+                        <text id="speed-text" class="gauge-text" x="60" y="75">0 km/h</text>
+                    </svg>
+                </div>
+
+                <!-- Distance Gauge -->
+                <div class="gauge">
+                    <div class="gauge-title">Distance</div>
+                    <svg class="gauge-svg" viewBox="0 0 120 120">
+                        <circle class="gauge-background" cx="60" cy="60" r="50" stroke-dasharray="157" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+                        <polygon id="distance-pointer" class="gauge-pointer" points="60,20 56,60 64,60" transform="rotate(0 60 60)"/>
+                        <text id="distance-text" class="gauge-text" x="60" y="75">0 cm</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
