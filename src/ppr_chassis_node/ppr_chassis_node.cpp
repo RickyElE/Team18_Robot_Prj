@@ -9,7 +9,9 @@ int main(){
     {
         return 1;
     }
-    mynode.run(mynode);
-
+    mynode.start();
+    std::cout << "Press Enter to stop...\n";
+    std::cin.get();
+    mynode.stop();
     return 0;
 }

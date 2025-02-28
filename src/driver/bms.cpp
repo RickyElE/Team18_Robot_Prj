@@ -2,8 +2,10 @@
 #include <cstdint>
 
 int main(){
-    BMS battery;
-    battery.showVoltage();
-    battery.showPercentage();
+    BMS bms;
+    bms.start();
+    std::cout << "Press Enter to stop...\n";
+    std::cin.get();
+    bms.stop();
     return 0;
 }
