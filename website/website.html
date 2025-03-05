@@ -3,19 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Required library for webcam -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.24/webcam.js"></script>
-    <!-- Bootstrap theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <title>Plant Protection Robot</title>
     <link rel="stylesheet" href="main.css">
+    
 </head>
 <body>
     <!-- User Account -->
     <div class="user-account">
         <button id="accountBtn" class="account-button">
+            <!-- 將使用者名稱的第一個字母作為頭像 -->
             <span id="userInitial"></span>
         </button>
         <div id="dropdownMenu" class="dropdown-menu">
@@ -44,22 +40,13 @@
         <!-- Left Section - Video -->
         <div class="left-section">
             <div id="video-container">
-                <video id="camera-stream" autoplay playsinline></video>
+                <img id="camera-stream" src="/video_feed" alt="Raspberry Pi Camera Stream">
             </div>
             <div class="camera-controls">
                 <button id="start-btn">Start Camera</button>
                 <button id="stop-btn" disabled>Stop Camera</button>
             </div>
-            <div>
-                <button id="capture-btn" disabled>Capture</button>
-            </div>
             <div id="error-message"></div>
-            
-            <!-- Screenshot container -->
-            <div class="screenshot-container">
-                <p class="screenshot-title">Screenshot</p>
-                <div id="screenshot-list"></div>
-            </div>
         </div>
 
         <!-- Right Section - Controls -->
@@ -69,12 +56,6 @@
                 <button id="left-btn" class="direction-btn">L</button>
                 <button id="right-btn" class="direction-btn">R</button>
                 <button id="down-btn" class="direction-btn">B</button>
-            </div>
-            
-            <div class="camera-move-controls">
-                <p class="camera-title">Camera Controls</p>
-                <button id="camera-up-btn" class="camera-btn">Look up</button>
-                <button id="camera-down-btn" class="camera-btn">Look down</button>
             </div>
 
             <!-- Gauges -->

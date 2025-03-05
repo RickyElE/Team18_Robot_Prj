@@ -26,6 +26,7 @@
 
 .dropdown-menu {
     position: absolute;
+    transform: translateX(-80%);
     top: 50px;
     right: 0;
     background-color: #2a2a2a;
@@ -72,9 +73,11 @@
 }
 
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
+     font-family: 'Courier New';
     margin: 0;
-    padding: 40px;
+    /* top: 10px, right: 40px, bottom: 40px, left: 0 */
+    padding: 10px 5px 10px 0; 
+
     background-color: #1a1a1a;
     min-height: 100vh;
 }
@@ -84,10 +87,11 @@ body {
     align-items: center;
     justify-content: center;
     gap: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 0;
 }
 
 #header {
+    transition: color 0.5s, text-shadow 0.5s;
     color: #ffffff;
     font-size: 30px;
     font-weight: 700;
@@ -95,83 +99,253 @@ body {
     font-family: 'Courier New', Courier, monospace;
     margin: 0;
 }
+#header:hover {
+    color: #4CAF50;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
 
 .container {
-    display: flex;
-    justify-content: flex-start;
-    gap: 60px;
-    margin-left: 20px;
+    margin-top: 0;
+    display: grid;
+    grid-template-columns: 30% 50% 20%; /* 變更比例為 30/50/20 */
+    gap: 5px; /* 避免區塊過大導致橫向溢出 */
+    width: 100vw; /* 限制最大寬度 */
+    max-width: 100%; /* 確保不超過畫面 */
+    box-sizing: border-box; /* 包含 padding 和 border 在計算內 */
+    overflow: hidden; /* 避免畫面外溢 */
+    align-items: start;
 }
 
-.left-section {
-    width: 500px;
-    margin-left: -100px; 
-}
-
+.left-section,
+.middle-section,
 .right-section {
-    width: 320px;
+    grid-row: 1;
+    max-width: 100%; /* 讓內部區塊不會超出 */
+    overflow: hidden; /* 超出時隱藏，不造成橫向滾動 */
+}
+
+/* 左側容器：現在放置方向控制和機械臂（原本的 middle-section 內容） */
+.left-section { 
+
+    grid-column: 1; 
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
 }
-
-#video-container {
-    width: 450px;
+.direction-controls {
+    width: 300px;
     height: 300px;
-    background-color: #2a2a2a;
+    display: grid;
+    gap: 5px;
+    background-color:#4a4a4a;
+    padding: 5px;
     border-radius: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
+    justify-items: center; /* 水平置中 */
+    align-items: center;   /* 垂直置中 */
 }
 
+.direction-buttons {
+    display: grid;
+    /* 建立 3x3 的網格，每格固定寬高 60px，可自行調整 */
+    grid-template-columns: 60px 60px 60px;
+    grid-template-rows: 60px 60px 60px;
+    gap: 15px;   
+  }
+
+.direction-btn {
+    font-size: 22px; 
+    font-weight: bold;
+}
+
+.direction-btn:hover {
+    background-color: #DDD0C8;
+}
+/* 個別按鈕在網格中的位置 */
+#forward-btn {
+    grid-column: 2; /* 第二欄 */
+    grid-row: 1;    /* 第一列 */
+  }
+  #left-btn {
+    grid-column: 1; /* 第一欄 */
+    grid-row: 2;    /* 第二列 */
+  }
+  #right-btn {
+    grid-column: 3; /* 第三欄 */
+    grid-row: 2;    /* 第二列 */
+  }
+  #back-btn {
+    grid-column: 2; /* 第二欄 */
+    grid-row: 3;    /* 第三列 */
+  }
+
+
+.mechanical-arm-controls {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;             /* 置中標題與按鈕 */
+    gap: 15px;
+    background-color:#4a4a4a;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    width: 300px;                    /* 與相機控制同樣寬度 */
+}
+
+.arm-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 列，讓 Up-Down, Cut-Release 均分 */
+    gap: 10px; /* 按鈕間距 */
+    width: 100%; /* 讓按鈕區塊填滿父級容器 */
+}
+
+.arm-btn {
+    width: 100%; /* 讓按鈕填滿各自的 grid 容器 */
+    height: 50px; /* 讓按鈕高度一致 */
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#arm-up-btn:hover,
+#arm-down-btn:hover {
+    background-color: #DDD0C8;
+}
+
+#arm-cut-btn:hover,
+#arm-release-btn:hover {
+    background-color: #AAB8AB;
+}
+
+
+/* Middle section container */
+.middle-section {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border-radius: 5px;
+    margin-left: -30px;
+}
+
+/* Camera top row layout */
+.camera-top-row {
+    display: flex;          /* Horizontal layout */
+    width: 100%;            /* Full width of parent */
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+/* Camera view container - 80% width */
+#camera-container {
+    flex: 0 0 80%;  /* Takes up 80% of the width */
+    height: 350px;
+    background: #4F4F4F;
+    border-radius: 15px;
+    margin-right: 8px;
+    
+}
+
+/* Video element */
 #camera-stream {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.camera-controls {
-    margin-left: -100px; 
+/* Button section - 15% width */
+.camera-btn-section {
+    flex: 0 0 20%;          /* Takes up 15% of the width */
     display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;  /* Arrange children vertically */
+    height: 350px;           /* Match camera container height */
+    justify-content: space-between; /* Distribute space between move controls and buttons */
 }
 
-#capture-btn {
-    margin-left: -100px; 
-    font-size: 14px;
-    background-color: #01B468;
+/* Movement controls - top of the button section */
+.camera-move-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+    border-radius: 15px;
+    background-color: #4a4a4a;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+/* Movement buttons */
+.camera-btn {
+    width: 50px;       
+    height: 50px;
+    display: flex;       
+    text-align: center;
+    align-items: center;
+    justify-content: center; 
+    font-size: 20px;
+}
+
+/* Control buttons now in vertical layout */
+.camera-controls {
+    display: flex;
+    flex-direction: column;  /* Changed to vertical layout */
+    gap: 10px;
+    align-items: center;
+}
+
+/* Standard buttons */
+#start-btn,
+#stop-btn {
+    width: 100%;       
+    height: 50px;
+    padding: 5px;
+    background-color: #4a4a4a;
     color: white;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    justify-content: center;;
+
+}
+
+/* Capture button */
+#capture-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    background-color: #DDD0C8;
+    color: black;
+    font-weight: bold;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease-in-out;
-    padding: 12px 24px;
-    display: block;
-    margin: 20px auto 0 auto;
 }
 
-#capture-btn:disabled {
-    background-color: #2a2a2a;
-    opacity: 0.5;
+/* Disabled button styles */
+button:disabled {
+    opacity: 0.6;
     cursor: not-allowed;
 }
 
-.screenshot-title {
-    color: white;
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    text-align: center;
-}
 
-.screenshot-container { 
-    margin-top: 20px;
-    width: 400px;
-    height: 250px;
+/* Screenshot container modifications */
+.screenshot-container {
+    margin-top: 5px;
+    width: 100%;
+    max-width: 500px;
+    height: 190px;
     background-color: #2a2a2a;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -179,30 +353,105 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    overflow: auto;
     margin-left: auto;
     margin-right: auto;
     padding: 15px;
+    overflow: hidden; /* Hide scrollbars but allow content to scroll */
+    position: relative; /* For the scrolling zones */
 }
 
 #screenshot-list {
+    margin-top: 0;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    width: 100%;
+    flex-wrap: nowrap; /* Don't wrap items */
+    gap: 15px;
+    justify-content: flex-start; /* Start from left */
+    width: max-content; /* Allow container to grow beyond parent width */
     padding: 10px;
-    overflow-y: auto;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-y: hidden; /* Disable vertical scrolling */
+    scroll-behavior: smooth; /* For smooth scrolling */
+    transition: transform 0.3s ease; /* Smooth transform for manual scrolling */
+    -ms-overflow-style: none;  /* Hide scrollbar in IE and Edge */
+    scrollbar-width: none;  /* Hide scrollbar in Firefox */
 }
 
-#screenshot-list img {
 
-    width: 250px;
-    height: 200;
+
+/* Screenshot item container */
+.screenshot-item {
+    position: relative;
+    flex: 0 0 auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Thumbnail size */
+.screenshot-item img {
+    width: 150px;
+    height: 120px;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     object-fit: cover;
+    transition: transform 0.3s ease;
 }
+
+/* Timestamp styling */
+.screenshot-timestamp {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+/* Hover effect */
+.screenshot-item:hover {
+    transform: scale(1.2);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Scroll direction zones */
+.scroll-zone {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 15%;
+    z-index: 5;
+    cursor: pointer; /* Show pointer cursor to indicate interactivity */
+}
+
+.scroll-zone-left {
+    left: 0;
+}
+
+.scroll-zone-right {
+    right: 0;
+}
+
+/* Mouse position indicator styles (optional) */
+.mouse-position-indicator {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(76, 175, 80, 0.3);
+    z-index: 4;
+    pointer-events: none; /* Don't interfere with mouse events */
+}
+/*右邊區塊*/
+.right-section {
+    grid-column: 3;/* container 的第三個子元素，占20% */
+    justify-content: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
 
 button {
     padding: 12px 24px;
@@ -235,72 +484,7 @@ button:disabled {
     box-shadow: none;
 }
 
-#error-message {
-    color: #ff4d4d;
-    margin-top: 10px;
-    font-size: 14px;
-    text-align: center;
-}
 
-.direction-controls {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    gap: 12px;
-    background-color: #2a2a2a;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-
-.direction-btn {
-    aspect-ratio: 1;
-    font-size: 20px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: #ffffff;
-    background-color: #3a3a3a;
-    min-height: 60px;
-}
-
-.direction-btn:hover {
-    background-color: #4a4a4a;
-}
-
-.camera-title {
-    font-size: 22px;
-    font-weight: bold;
-    color: white;
-    text-align: center;
-    font-family: 'Courier New', Courier, monospace;
-    margin: 0 0 15px 0;
-}
-
-.camera-move-controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    background-color: #2a2a2a;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    width: 250px;
-}
-
-.camera-btn {
-    width: 100%;
-    text-align: center;
-}
-
-/* Position the direction buttons */
-#up-btn { grid-column: 2; grid-row: 1; }
-#left-btn { grid-column: 1; grid-row: 2; }
-#right-btn { grid-column: 3; grid-row: 2; }
-#down-btn { grid-column: 2; grid-row: 3; }
 
 .gauges-container {
     display: flex;
@@ -354,4 +538,60 @@ button:disabled {
     fill: #4CAF50;
     transform-origin: center;
     transition: transform 0.3s ease;
+}
+
+/* 電池外框 */
+.battery-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.battery {
+    width: 80px; /* 電池寬度 */
+    height: 30px; /* 電池高度 */
+    border: 3px solid #fff; /* 電池邊框 */
+    border-radius: 5px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+}
+
+/* 電池的正極端 (右側小凸出) */
+.battery::after {
+    content: "";
+    width: 5px;
+    height: 12px;
+    background: #fff;
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 2px;
+}
+
+/* 電池電量進度條 */
+.battery-level {
+    height: 100%;
+    width: 100%; /* 預設滿電 100% */
+    background-color: #4CAF50; /* 綠色電量 */
+    border-radius: 3px;
+    transition: width 0.3s ease-in-out;
+}
+
+/* 低電量警告 */
+.battery-level.low {
+    background-color: #FF9800; /* 橘色 */
+}
+
+.battery-level.critical {
+    background-color: #FF3D00; /* 紅色 */
+}
+
+/* 電量百分比 */
+#battery-percentage {
+    color: white;
+    font-size: 14px;
 }

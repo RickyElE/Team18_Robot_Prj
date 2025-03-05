@@ -1,7 +1,7 @@
-#include <iostream>   //標準輸入輸出
-#include <string>  
-#include <thread>     //多線程
-#include <mutex>      //線程同步
+#include <iostream>
+#include <string>
+#include <thread>
+#include <mutex>
 #include <vector>
 #include <atomic>
 #include <cstring>
@@ -10,79 +10,92 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
-#include <sys/wait.h>
-#include <fstream>     //文件輸入輸出
+#include <fstream>
+#include <sstream>
+#include <sys/stat.h>
+#include <cstdlib> // 用於 getenv
 
 // 全局變量
-std::mutex frameMutex;     //確保同一時間只有一個可以存取frame
+std::mutex frameMutex;
 std::vector<uint8_t> latestFrame;
-std::atomic<bool> running{true};    //boolean初始為true初始為true
-const int PORT = 8080;        //服務器監聽窗口
+std::atomic<bool> running{true};
+const int PORT = 8080;
+std::string webroot = "/home/Team18_Pi/website/Team18_Robot_Prj/website"; // 網頁文件所在的路徑
 
 // 函數聲明
-void cameraThread();        //攝像頭捕獲線程
-void handleClient(int clientSocket);     //客戶端連接
-std::string createHTTPResponse(const std::string& content, const std::string& contentType);    //http響應
+void cameraThread();
+void handleClient(int clientSocket);
+std::string getContentType(const std::string& path);
+bool fileExists(const std::string& path);
 
-// HTML內容
-const char* indexHTML = R"(
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Raspberry Pi Camera Stream</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .container { margin-top: 30px; }
-        img { max-width: 100%; border: 1px solid #ddd; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Raspberry Pi Camera Stream</h1>
-        <img src="/video_feed" alt="Video Stream">
-    </div>
-</body>
-</html>
-)";
+// 處理信號
+void signalHandler(int signum) {
+    
+    running = false;
+}
 
-// 使用libcamera-still捕獲圖像
+// 獲取文件的 MIME 類型
+std::string getContentType(const std::string& path) {
+    if (path.find(".html") != std::string::npos) {
+        return "text/html";
+    } else if (path.find(".css") != std::string::npos) {
+        return "text/css";
+    } else if (path.find(".js") != std::string::npos) {
+        return "application/javascript";
+    } else if (path.find(".jpg") != std::string::npos || path.find(".jpeg") != std::string::npos) {
+        return "image/jpeg";
+    } else if (path.find(".png") != std::string::npos) {
+        return "image/png";
+    } else if (path.find(".gif") != std::string::npos) {
+        return "image/gif";
+    } else if (path.find(".ico") != std::string::npos) {
+        return "image/x-icon";
+    } else {
+        return "application/octet-stream";
+    }
+}
+
+// 檢查文件是否存在
+bool fileExists(const std::string& path) {
+    struct stat buffer;
+    return (stat(path.c_str(), &buffer) == 0);
+}
+
+// 使用 libcamera-still 捕獲圖像
 void cameraThread() {
     // 創建臨時文件路徑
-    const char* tempJpegPath = "/tmp/pi_camera_stream.jpg";    //定義臨時JPEG文件路徑
-    char command[256];     //將命令陣列大小固定為256
+    const char* tempJpegPath = "/tmp/pi_camera_stream.jpg";
+    char command[256];
     
     while (running) {
-        // 使用libcamera-still命令捕獲一張圖像
+        // 使用 libcamera-still 命令捕獲一張圖像
         snprintf(command, sizeof(command), 
-                 "libcamera-still -n --immediate --width 640 --height 480 --output %s --timeout 1", 
-                 tempJpegPath);                //解析度為640*480    //immediate: 立即拍照    //timeout 1 : 設定曝光時間為1豪秒
-                                               //libcamera-still 是raspberry pi 上的攝像機控制工具
+                 "libcamera-still -n --immediate --width 320 --height 240 --output %s --timeout 1 --hflip --vflip --quality 70", 
+                 tempJpegPath);
         
         // 執行命令
         int result = system(command);
-        if (result != 0) {       //如果執行失敗
-            std::cerr << "Failed to capture image with libcamera-still" << std::endl;     //錯誤提示
-            std::this_thread::sleep_for(std::chrono::seconds(1));        //讓目前執行的thread暫停一秒
+        if (result != 0) {
+            std::cerr << "Failed to capture image with libcamera-still" << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
             continue;  
         }
         
-        // 讀取JPEG文件
-        std::ifstream file(tempJpegPath, std::ios::binary | std::ios::ate);    
-        //temJpegPath檔案路徑      //用二進位的方式開啟檔案    //從檔案末尾開始讀取，以獲取檔案大小
-
-        if (!file.is_open()) {    //如果沒有打開
+        // 讀取 JPEG 文件
+        std::ifstream file(tempJpegPath, std::ios::binary | std::ios::ate);
+        if (!file.is_open()) {
             std::cerr << "Failed to open captured image file" << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(1));
             continue;
         }
         
         // 獲取文件大小
-        std::streamsize size = file.tellg();    //取得目前讀取位置，即前面設定的末尾
-        file.seekg(0, std::ios::beg);      //讀取位置重置回開頭
+        std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
         
         // 讀取文件內容
-        std::vector<uint8_t> buffer(size);     //創建足夠大的緩衝區
-        if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {    
+        std::vector<uint8_t> buffer(size);
+        if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {
             std::cerr << "Failed to read image file" << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(1));
             continue;
@@ -90,34 +103,22 @@ void cameraThread() {
         file.close();
         
         // 更新最新幀
-        std::lock_guard<std::mutex> lock(frameMutex);     //加索保護共享數據
-        latestFrame = buffer;     //將讀取到的圖像更新為最新幀
+        std::lock_guard<std::mutex> lock(frameMutex);
+        latestFrame = buffer;
         
         // 短暫延遲控制幀率
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-}
-
-// 創建HTTP響應
-std::string createHTTPResponse(const std::string& content, const std::string& contentType) {
-    std::string response = "HTTP/1.1 200 OK\r\n";     //使用http 1.1 協議   //回應狀態碼200，表示成功
-    response += "Content-Type: " + contentType + "\r\n";      //回應客戶端的形式
-    response += "Content-Length: " + std::to_string(content.length()) + "\r\n";    //回應內容長度
-    response += "Connection: keep-alive\r\n";       //一直保持連線
-    response += "\r\n";      //http協定，要把header跟body分開
-    response += content;     //body
-    
-    return response;
 }
 
 // 處理客戶端連接
 void handleClient(int clientSocket) {
-    const int BUFFER_SIZE = 1024;     //定義緩衝區大小
-    char buffer[BUFFER_SIZE];        //創建接收緩衝區
+    const int BUFFER_SIZE = 1024;
+    char buffer[BUFFER_SIZE];
     
-    // 接收HTTP請求
-    ssize_t bytesRead = recv(clientSocket, buffer, BUFFER_SIZE - 1, 0);    //從客戶端讀取數據
-    if (bytesRead <= 0) {        //檢查是否成功讀取
+    // 接收 HTTP 請求
+    ssize_t bytesRead = recv(clientSocket, buffer, BUFFER_SIZE - 1, 0);
+    if (bytesRead <= 0) {
         close(clientSocket);
         return;
     }
@@ -125,14 +126,21 @@ void handleClient(int clientSocket) {
     buffer[bytesRead] = '\0';
     std::string request(buffer);
     
-    // 解析請求以確定端點
-    if (request.find("GET / HTTP") != std::string::npos) {      //檢查是否為跟路徑請求
-        // 提供index.html
-        std::string response = createHTTPResponse(indexHTML, "text/html");     //創建html響應
-        send(clientSocket, response.c_str(), response.length(), 0);    //發送響應
-        close(clientSocket);     //關閉客戶端連接
+    // 解析 HTTP 請求
+    std::string path;
+    if (request.find("GET") == 0) {
+        size_t pathStart = request.find(" ") + 1;
+        size_t pathEnd = request.find(" ", pathStart);
+        path = request.substr(pathStart, pathEnd - pathStart);
+        
+        // 默認首頁
+        if (path == "/") {
+            path = "/website.html";
+        }
     }
-    else if (request.find("GET /video_feed HTTP") != std::string::npos) {     //檢查是否為視頻流請求
+    
+    // 處理視頻流請求
+    if (path == "/video_feed") {
         // 視頻串流端點
         const char* header = "HTTP/1.1 200 OK\r\n"
                             "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n"
@@ -140,18 +148,18 @@ void handleClient(int clientSocket) {
                             "Connection: close\r\n"
                             "\r\n";
         
-        send(clientSocket, header, strlen(header), 0);    //發送MJPEG流頭部
+        send(clientSocket, header, strlen(header), 0);
         
         while (running) {
             // 獲取最新幀
             std::vector<uint8_t> frame;
             {
                 std::lock_guard<std::mutex> lock(frameMutex);
-                frame = latestFrame;    //複製最新帧
+                frame = latestFrame;
             }
             
             if (!frame.empty()) {
-                // 創建MJPEG幀頭部
+                // 創建 MJPEG 幀頭部
                 std::string frameHeader = "--frame\r\n"
                                          "Content-Type: image/jpeg\r\n"
                                          "Content-Length: " + std::to_string(frame.size()) + "\r\n"
@@ -169,37 +177,69 @@ void handleClient(int clientSocket) {
             }
             
             // 短暫延遲
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));   //控制發送頻率
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
         
         close(clientSocket);
     }
+    // 處理靜態文件請求
     else {
-        // 處理404 Not Found
-        std::string notFound = "HTTP/1.1 404 Not Found\r\n"
-                              "Content-Type: text/plain\r\n"
-                              "Content-Length: 9\r\n"
-                              "\r\n"
-                              "Not Found";
+        // 構建本地文件路徑
+        std::string filepath = webroot + path;
         
-        send(clientSocket, notFound.c_str(), notFound.length(), 0);
+        // 檢查文件是否存在
+        if (fileExists(filepath)) {
+            // 獲取文件類型
+            std::string contentType = getContentType(filepath);
+            
+            // 讀取文件
+            std::ifstream file(filepath, std::ios::binary | std::ios::ate);
+            if (file.is_open()) {
+                // 獲取文件大小
+                std::streamsize size = file.tellg();
+                file.seekg(0, std::ios::beg);
+                
+                // 讀取文件內容
+                std::vector<char> content(size);
+                if (file.read(content.data(), size)) {
+                    // 創建 HTTP 響應頭
+                    std::string header = "HTTP/1.1 200 OK\r\n"
+                                        "Content-Type: " + contentType + "\r\n"
+                                        "Content-Length: " + std::to_string(size) + "\r\n"
+                                        "Connection: close\r\n"
+                                        "\r\n";
+                    
+                    // 發送響應頭
+                    send(clientSocket, header.c_str(), header.length(), 0);
+                    
+                    // 發送文件內容
+                    send(clientSocket, content.data(), content.size(), 0);
+                }
+                file.close();
+            }
+        } else {
+            // 文件不存在，返回 404
+            std::string notFound = "HTTP/1.1 404 Not Found\r\n"
+                                  "Content-Type: text/plain\r\n"
+                                  "Content-Length: 9\r\n"
+                                  "\r\n"
+                                  "Not Found";
+            
+            send(clientSocket, notFound.c_str(), notFound.length(), 0);
+        }
+        
         close(clientSocket);
     }
 }
 
-// 處理信號
-void signalHandler(int signum) {
-    running = false;     //停止程序
-}
-
 int main() {
     // 設置信號處理
-    signal(SIGINT, signalHandler);     //設定按下ctrl+c時停止程序
-    signal(SIGTERM, signalHandler);    //設定按下SIGTERM時停止程序
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
     
-    // 創建服務器套接字     //socket : 網路電話線，可以讓程式間互相通訊
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);     //使用IPv4網路協議  //tcp(sock_stream)資料傳輸
-    if (serverSocket < 0) {      //創建失敗
+    // 創建服務器套接字
+    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket < 0) {
         std::cerr << "Error creating socket" << std::endl;
         return 1;
     }
@@ -230,6 +270,7 @@ int main() {
     }
     
     std::cout << "Server started at http://0.0.0.0:" << PORT << std::endl;
+    std::cout << "Serving files from: " << webroot << std::endl;
     
     // 啟動攝像頭線程
     std::thread camThread(cameraThread);
@@ -239,7 +280,7 @@ int main() {
         struct sockaddr_in clientAddr;
         socklen_t clientAddrLen = sizeof(clientAddr);
         
-        // 設置超時以允許檢查running標誌
+        // 設置超時以允許檢查 running 標誌
         fd_set readSet;
         FD_ZERO(&readSet);
         FD_SET(serverSocket, &readSet);
