@@ -1,10 +1,17 @@
 #ifndef _PPR_CHASSIS_NODE_H_
 #define _PPR_CHASSIS_NODE_H_
 
-#include "ChassisPublisher.h"
-#include "ChassisSubscriber.h"
+// #include "ChassisPublisher.h"
+// #include "ChassisSubscriber.h"
+#include "Publisher.h"
+#include "Subscriber.h"
+
+#include "BatteryMsg.h"
+#include "BatteryMsgPubSubTypes.h"
 #include "bms.h"
 
+#include <fastdds/dds/domain/qos/DomainParticipantFactoryQos.hpp>
+#include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 #include <thread>
 #include <chrono>
 #include <functional>
@@ -21,15 +28,17 @@
 class ppr_chassis_node
 {
 public:
-    ChassisPublisher* chassisPublisher = new ChassisPublisher();
-    ChassisSubscriber* chassisSubscriber = new ChassisSubscriber();
+    // ChassisPublisher* chassisPublisher = new ChassisPublisher();
+    // ChassisSubscriber* chassisSubscriber = new ChassisSubscriber();
 
     ppr_chassis_node(){};
     virtual ~ppr_chassis_node(){};
     void run();
 
     bool init();
-    void publish_callback(std::function<void(ChassisMsg&)> callback, ChassisMsg chassisMsg);
+
+    template <typename MSG_TYPE>
+    void publish_callback(std::function<void(MSG_TYPE&)> callback, MSG_TYPE msg);
     void subscribe_callback(std::function<void()> callback);
     bool start(int interval_ms = 1000){
         // if (timer_fd_ != -1){
@@ -71,6 +80,7 @@ public:
         //     timer_fd_ = -1;
         // }
     }
+    
 private:
     int timer_fd_;
     std::atomic<bool> running_ = false;
@@ -79,11 +89,12 @@ private:
 };
 
 bool ppr_chassis_node::init(){
-    if (!chassisPublisher->init())
-    {
-        std::cout << "Failed to initialize publisher" << std::endl;
-        return false;
-    }
+
+    // if (!battery_publisher->init())
+    // {
+    //     std::cout << "Failed to initialize publisher" << std::endl;
+    //     return false;
+    // }
 
     // if (!batterySubscriber->init())
     // {
@@ -93,8 +104,9 @@ bool ppr_chassis_node::init(){
     return true;
 }
 
-void ppr_chassis_node::publish_callback(std::function<void(ChassisMsg&)> callback, ChassisMsg chassisMsg){
-    callback(chassisMsg);
+template <typename MSG_TYPE>
+void ppr_chassis_node::publish_callback(std::function<void(MSG_TYPE&)> callback, MSG_TYPE msg){
+    callback(msg);
 }
 
 void ppr_chassis_node::subscribe_callback(std::function<void()> callback){
@@ -103,17 +115,23 @@ void ppr_chassis_node::subscribe_callback(std::function<void()> callback){
 
 void ppr_chassis_node::run(){
     std::cout << "ppr_chassis_node is running" << std::endl;
-    ChassisMsg chassisMsg;
+    BatteryMsg battery_msg;
+    eprosima::fastdds::dds::DomainParticipantQos pqos;
+    pqos.name("Participant_publisher");
+    Publisher<BatteryMsgPubSubType,BatteryMsg> battery_publisher(BatteryMsg(), "Battery_Topic",
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->create_participant(0,  pqos));
     double voltage = 0;
     double percentage = 0;
+    battery_publisher.init();
     // uint64_t expirations;
     while(running_)
     {
         voltage = bms.getVoltage();
         percentage = bms.getPercentage();
-        chassisMsg.setBatteryVoltage(voltage);
-        chassisMsg.setBatteryPercentage(percentage);
-        this->publish_callback(std::bind(&ChassisPublisher::publish, this->chassisPublisher, std::placeholders::_1), chassisMsg);
+        battery_msg.voltage(voltage);
+        battery_msg.percentage(percentage);
+        battery_publisher.publish(battery_msg);
+        // this->publish_callback<BatteryMsg>(std::bind(&Publisher<BatteryMsgPubSubType,BatteryMsg>::publish, battery_publisher, std::placeholders::_1), battery_msg);
     }
 }
 #endif

@@ -14,6 +14,7 @@
 #include <fastdds/dds/subscriber/SampleInfo.hpp>
 #include <fastdds/dds/subscriber/Subscriber.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
+#include <nlohmann/json.hpp>
 
 class ChassisSubscriber
 {
@@ -27,6 +28,8 @@ public:
     eprosima::fastdds::dds::Topic* topic_ = nullptr;    
 
     eprosima::fastdds::dds::TypeSupport type_;
+
+    nlohmann::json j;
 
 public:
     ChassisSubscriber() : type_(new ChassisMsgPubSubType()) {}
@@ -55,27 +58,6 @@ public:
             SubListener(){};
             ~SubListener() override {};
 
-            // void on_subscription_matched(
-            //     eprosima::fastdds::dds::DataReader* reader,
-            //     const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override
-            // {
-            //     if (info.current_count_change == 1)
-            //     {
-            //         return;
-            //         // std::cout << "Subscriber matched" << std::endl;
-            //     }
-            //     else 
-            //     if (info.current_count_change == -1)
-            //     {
-            //         std::cout << "Subscriber unmatched" << std::endl;
-            //     }
-            //     else
-            //     {
-            //         std::cout << info.total_count_change << "Unknown subscription matched change" << std::endl;
-            //     }
-            
-            // }
-        
             void on_data_available(eprosima::fastdds::dds::DataReader* reader)override{
                 ChassisMsg msg;
                 eprosima::fastdds::dds::SampleInfo info;

@@ -163,9 +163,10 @@ private:
 
 class BMS : public ADSCallbackInterface{
 private:
-    const double vol_max = 6.2;
+    const double vol_max = 8.4;
+    const double vol_min = 6.0;
     double voltage = 0;
-    double percentage = 0;
+    double percentage_ = 0;
     ADS7830 ads_;
 public:
     BMS(){
@@ -197,7 +198,9 @@ private:
 };
 
 void BMS::setPercentage(){
-    this->percentage = (this->voltage / this->vol_max) * 100;
+    // this->percentage = (this->voltage / this->vol_max) * 100;
+    double percentage = ((this->voltage - this->vol_min) / (this->vol_max - this->vol_min)) * 100;
+    this->percentage_ = percentage;
 }
 void BMS::setVoltage(uint16_t raw_data){
     this->voltage = (raw_data / 65535.0) * 8.4;
@@ -220,15 +223,17 @@ double BMS::getVoltage(){
 
 void BMS::showPercentage(){
     // this->percentage = (this->voltage / this->vol_max) * 100;
-    std::cout << "Percentage is:" << this->percentage << "%" << std::endl;
+    std::cout << "Percentage is:" << this->percentage_ << "%" << std::endl;
 }
 
 double BMS::getPercentage(){
-    this->percentage = (this->voltage / this->vol_max) * 100;
+    // this->percentage_ = (this->voltage / this->vol_max) * 100;
+    double percentage = ((this->voltage - this->vol_min) / (this->vol_max - this->vol_min)) * 100;
+    this->percentage_ = percentage;
 #ifdef DEBUG
     std::cout << "Percentage is:" << this->percentage << "%" << std::endl;
 #endif
-    return this->percentage;
+    return this->percentage_;
 }
 // uint32_t BMS::readADS7830(int fd, int channel){
 //     if (channel < 0 || channel > 7){

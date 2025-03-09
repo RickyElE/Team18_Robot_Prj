@@ -8,7 +8,8 @@ int main(int, char**){
     {
         return 1;
     }
-    mynode.run(mynode);
+    mynode.start();
+    // mynode.run();
 
     return 0;
 }
