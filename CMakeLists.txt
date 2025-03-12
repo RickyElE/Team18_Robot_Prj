@@ -41,6 +41,9 @@ include_directories(${CMAKE_SOURCE_DIR}/include/ppr_master_node)
 include_directories(${CMAKE_SOURCE_DIR}/include/ppr_remote_node)
 include_directories(${CMAKE_SOURCE_DIR}/include/Publisher)
 include_directories(${CMAKE_SOURCE_DIR}/include/Subscriber)
+include_directories(${CMAKE_SOURCE_DIR}/include/driver/PCA9685)
+include_directories(${CMAKE_SOURCE_DIR}/include/driver/DCMotor)
+
 # add_custom_target(
 #     messages
 #     COMMAND fastddsgen ${CMAKE_SOURCE_DIR}/idl/ChassisMsg.idl
@@ -60,3 +63,11 @@ add_executable(ppr_remote_node ${CMAKE_SOURCE_DIR}/src/ppr_remote_node/ppr_remot
 target_link_libraries(ppr_remote_node BatteryMsg fastcdr fastrtps)
 
 add_executable(bms ${CMAKE_SOURCE_DIR}/src/driver/bms.cpp)
+
+add_executable(delay ${CMAKE_SOURCE_DIR}/src/test/delay.cpp)
+
+add_executable(pwm_test ${CMAKE_SOURCE_DIR}/src/test/pwm_test.cpp ${CMAKE_SOURCE_DIR}/include/driver/PCA9685/PCA9685.cpp)
+
+add_executable(motor_test ${CMAKE_SOURCE_DIR}/src/test/motor_test.cpp 
+                            ${CMAKE_SOURCE_DIR}/include/driver/PCA9685/PCA9685.cpp 
+                            ${CMAKE_SOURCE_DIR}/include/driver/DCMotor/motor.cpp)
