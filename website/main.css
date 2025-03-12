@@ -73,6 +73,7 @@
 }
 
 body {
+    flex-grow: 1;
      font-family: 'Courier New';
     margin: 0;
     /* top: 10px, right: 40px, bottom: 40px, left: 0 */
@@ -451,95 +452,6 @@ button:disabled {
     flex-direction: column;
     gap: 30px;
 }
-
-
-button {
-    padding: 12px 24px;
-    background-color: #2a2a2a;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 16px;
-    font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-button:hover {
-    background-color: #3a3a3a;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-}
-
-button:active {
-    transform: translateY(0);
-}
-
-button:disabled {
-    background-color: #2a2a2a;
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-
-
-.gauges-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-}
-
-.gauge {
-    background-color: #2a2a2a;
-    border-radius: 15px;
-    padding: 20px;
-    flex: 1;
-    text-align: center;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-
-.gauge-title {
-    color: #ffffff;
-    margin-bottom: 15px;
-    font-size: 16px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-}
-
-.gauge-svg {
-    width: 100%;
-    height: auto;
-}
-
-.gauge-background {
-    fill: none;
-    stroke: #3a3a3a;
-    stroke-width: 12;
-}
-
-.gauge-value {
-    fill: none;
-    stroke: #4CAF50;
-    stroke-width: 12;
-    transition: stroke-dasharray 0.3s ease;
-}
-
-.gauge-text {
-    fill: #ffffff;
-    font-size: 14px;
-    text-anchor: middle;
-    font-weight: 500;
-}
-
-.gauge-pointer {
-    fill: #4CAF50;
-    transform-origin: center;
-    transition: transform 0.3s ease;
-}
-
 /* 電池外框 */
 .battery-container {
     display: flex;
@@ -595,3 +507,129 @@ button:disabled {
     color: white;
     font-size: 14px;
 }
+/* 進度條 */
+.progress-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.progress-container label {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 1.5px;
+}
+
+
+progress {
+    width: 70%;
+    height: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: #3a3a3a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+progress::-webkit-progress-bar {
+    background-color: #3a3a3a;
+}
+
+progress::-webkit-progress-value {
+    background-color: #4CAF50; 
+    transition: width 0.3s ease;
+}
+
+progress::-moz-progress-bar {
+    background-color: #4CAF50;
+}
+
+
+button {
+    padding: 12px 24px;
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+    background-color: #3a3a3a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button:disabled {
+    background-color: #2a2a2a;
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+
+
+.gauges-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.gauge {
+    flex:1;
+    background-color: #2a2a2a;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    
+}
+
+.gauge-title {
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.gauge-svg {
+    width: 80%;
+    height: auto;
+}
+
+.gauge-background {
+    fill: none;
+    stroke: #3a3a3a;
+    stroke-width: 15;
+}
+
+.gauge-value {
+    fill: none;
+    stroke: #4CAF50;
+    stroke-width: 15;
+    transition: stroke-dasharray 0.3s ease;
+    
+}
+
+.gauge-text {
+    fill: #ffffff;
+    font-size: 25px;
+    text-anchor: middle;
+    font-weight: 500;
+}
+
+.gauge-pointer {
+    fill: #4CAF50;
+    transform-origin: center;
+    transition: transform 0.3s ease;
+}
+
