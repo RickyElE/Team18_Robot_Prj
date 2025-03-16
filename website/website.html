@@ -84,16 +84,43 @@
                 </div>   
             </div>
             <!--機械臂控制 -->
-            <div class="mechanical-arm-controls">
-                <img src="img/robot-arm_8596335.png" alt="robotarm-img"  width="50">
-
-                <div class="arm-buttons">
-                    <button id="arm-up-btn" class="arm-btn">Up</button>
-                    <button id="arm-down-btn" class="arm-btn">Down</button>
-                    <button id="arm-cut-btn" class="arm-btn">Cut</button>
-                    <button id="arm-release-btn" class="arm-btn">Release</button>
-                </div>
-            </div>
+            <!-- 書籤式機械臂控制區塊 -->
+<div class="mechanical-arm-controls">
+    <div class="arm-header">
+        <img src="img/robot-arm_8596335.png" alt="robotarm-img" width="50">
+        <h3>Mechanical Arm</h3>
+    </div>
+    
+    <!-- 書籤標籤列 -->
+    <div class="arm-tabs">
+        <button class="arm-tab-btn active" data-tab="movement">Movement</button>
+        <button class="arm-tab-btn" data-tab="gripper">Clamp</button>
+    </div>
+    
+    <!-- 書籤內容 - 移動控制頁面 -->
+    <div class="arm-tab-content active" id="movement-tab">
+        <div class="arm-buttons">
+            <!-- 上下控制 -->
+            <button id="arm-up-btn" class="arm-btn">Up</button>
+            <button id="arm-down-btn" class="arm-btn">Down</button>
+            
+            <!-- 前後控制 -->
+            <button id="arm-forward-btn" class="arm-btn">Forward</button>
+            <button id="arm-backward-btn" class="arm-btn">Backward</button>
+        </div>
+    </div>
+    
+    <!-- 書籤內容 - 夾子控制頁面 -->
+    <div class="arm-tab-content" id="gripper-tab">
+        <div class="arm-buttons">
+            <!-- 旋轉控制 -->
+            <button id="arm-rotate-left-btn" class="arm-btn">Rotate Left</button>
+            <button id="arm-rotate-right-btn" class="arm-btn">Rotate right</button>
+            <!-- 夾取和釋放控制 -->
+            <button id="arm-cut-btn" class="arm-btn">Cut</button>
+        </div>
+    </div>
+</div>
         </div>
 
   <div class="right-section">

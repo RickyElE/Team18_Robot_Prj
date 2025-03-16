@@ -183,30 +183,99 @@ body {
   }
 
 
-.mechanical-arm-controls {
+  .mechanical-arm-controls {
     margin-top: 18px;
     display: flex;
     flex-direction: column;
-    align-items: center;             /* 置中標題與按鈕 */
-    gap: 15px;
-    background-color:#4a4a4a;
+    align-items: center;
+    gap: 10px;
+    background-color: #4a4a4a;
     padding: 20px;
     border-radius: 15px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    width: 300px;                    /* 與相機控制同樣寬度 */
+    width: 300px;
 }
 
+/* 標題區域樣式 */
+.arm-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.arm-header h3 {
+    color: white;
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* 書籤標籤列樣式 */
+.arm-tabs {
+    display: flex;
+    width: 100%;
+    border-bottom: 2px solid #666;
+    margin-bottom: 15px;
+}
+
+.arm-tab-btn {
+    flex: 1;
+    padding: 8px 15px;
+    background-color: #333;
+    color: #ccc;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: bold;
+    margin-right: 2px;
+}
+
+.arm-tab-btn:last-child {
+    margin-right: 0;
+}
+
+.arm-tab-btn.active {
+    background-color: #555;
+    color: white;
+    border-bottom: 2px solid #4CAF50;
+}
+
+.arm-tab-btn:hover:not(.active) {
+    background-color: #444;
+}
+
+/* 書籤內容樣式 */
+.arm-tab-content {
+    display: none;
+    width: 100%;
+}
+
+.arm-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 按鈕網格佈局 */
 .arm-buttons {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 列，讓 Up-Down, Cut-Release 均分 */
-    gap: 10px; /* 按鈕間距 */
-    width: 100%; /* 讓按鈕區塊填滿父級容器 */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
 }
 
 .arm-btn {
-    width: 100%; /* 讓按鈕填滿各自的 grid 容器 */
-    height: 50px; /* 讓按鈕高度一致 */
-    font-size: 16px;
+    width: 100%;
+    height: 50px;
+    font-size: 14px;    
     font-weight: bold;
     background-color: #333;
     color: white;
@@ -214,18 +283,29 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s;
+    align-items: center;
 }
 
+/* 移動控制按鈕樣式 */
 #arm-up-btn:hover,
 #arm-down-btn:hover {
     background-color: #DDD0C8;
 }
 
-#arm-cut-btn:hover,
-#arm-release-btn:hover {
+#arm-forward-btn:hover,
+#arm-backward-btn:hover {
+    background-color: #C2B280;
+}
+
+/* 夾子控制按鈕樣式 */
+#arm-cut-btn:hover{
     background-color: #AAB8AB;
 }
 
+#arm-rotate-left-btn:hover,
+#arm-rotate-right-btn:hover {
+    background-color: #B0C4DE;
+}
 
 /* Middle section container */
 .middle-section {
@@ -340,8 +420,7 @@ button:disabled {
     cursor: not-allowed;
 }
 
-
-/* Screenshot container modifications */
+/* 截圖容器相關樣式修改 */
 .screenshot-container {
     margin-top: 5px;
     width: 100%;
@@ -357,36 +436,84 @@ button:disabled {
     margin-left: auto;
     margin-right: auto;
     padding: 15px;
-    overflow: hidden; /* Hide scrollbars but allow content to scroll */
-    position: relative; /* For the scrolling zones */
+    position: relative; /* 為滾動按鈕定位 */
+    overflow: hidden; /* 防止內容溢出 */
 }
 
+/* 截圖列表樣式修改 */
 #screenshot-list {
     margin-top: 0;
     display: flex;
-    flex-wrap: nowrap; /* Don't wrap items */
+    flex-wrap: nowrap; /* 不換行 */
     gap: 15px;
-    justify-content: flex-start; /* Start from left */
-    width: max-content; /* Allow container to grow beyond parent width */
     padding: 10px;
-    overflow-x: auto; /* Enable horizontal scrolling */
-    overflow-y: hidden; /* Disable vertical scrolling */
-    scroll-behavior: smooth; /* For smooth scrolling */
-    transition: transform 0.3s ease; /* Smooth transform for manual scrolling */
-    -ms-overflow-style: none;  /* Hide scrollbar in IE and Edge */
-    scrollbar-width: none;  /* Hide scrollbar in Firefox */
+    width: 100%;
+    overflow-x: auto; /* 開啟水平滾動 */
+    scroll-behavior: smooth; /* 平滑滾動 */
+    
+    /* 隱藏滾動條但保持功能 */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #555 transparent; /* Firefox */
 }
 
+/* Webkit瀏覽器的滾動條樣式 */
+#screenshot-list::-webkit-scrollbar {
+    height: 6px;
+}
 
+#screenshot-list::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 3px;
+}
 
-/* Screenshot item container */
+#screenshot-list::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+/* 截圖項目樣式 */
+/* 截圖容器相關樣式修改 */
+.screenshot-container {
+    margin-top: 5px;
+    width: 100%;
+    max-width: 500px;
+    height: 190px;
+    background-color: #2a2a2a;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 15px;
+    position: relative; /* 為滾動按鈕定位 */
+    overflow: hidden; /* 防止內容溢出但允許滾動 */
+}
+
+/* 截圖列表樣式修改 */
+#screenshot-list {
+    margin-top: 0;
+    display: flex;
+    flex-wrap: nowrap; /* 不換行 */
+    gap: 15px;
+    justify-content: flex-start; /* 從左開始 */
+    width: 100%; /* 設置為容器寬度 */
+    padding: 10px;
+    overflow-x: auto; /* 啟用水平滾動 */
+    overflow-y: hidden; /* 禁用垂直滾動 */
+    scroll-behavior: smooth; /* 平滑滾動效果 */
+    scrollbar-width: thin; /* Firefox 滾動條樣式 */
+    scrollbar-color: rgba(76, 175, 80, 0.5) transparent; /* Firefox 滾動條顏色 */
+}
+
+/* 截圖項目大小保持不變 */
 .screenshot-item {
     position: relative;
     flex: 0 0 auto;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Thumbnail size */
 .screenshot-item img {
     width: 150px;
     height: 120px;
@@ -395,7 +522,6 @@ button:disabled {
     object-fit: cover;
     transition: transform 0.3s ease;
 }
-
 /* Timestamp styling */
 .screenshot-timestamp {
     position: absolute;
@@ -408,41 +534,52 @@ button:disabled {
     font-size: 10px;
 }
 
-/* Hover effect */
-.screenshot-item:hover {
-    transform: scale(1.2);
+/* Webkit瀏覽器的滾動條樣式 */
+#screenshot-list::-webkit-scrollbar {
+    height: 8px; /* 滾動條高度 */
+}
+
+#screenshot-list::-webkit-scrollbar-thumb {
+    background-color: rgba(76, 175, 80, 0.5); /* 半透明綠色 */
+    border-radius: 4px;
+}
+
+#screenshot-list::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+/* 滾動按鈕樣式 */
+.scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    opacity: 0.7;
+    transition: opacity 0.3s ease, background-color 0.3s ease;
 }
 
-/* Scroll direction zones */
-.scroll-zone {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 15%;
-    z-index: 5;
-    cursor: pointer; /* Show pointer cursor to indicate interactivity */
+.scroll-btn:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.7);
 }
 
-.scroll-zone-left {
-    left: 0;
+.scroll-left-btn {
+    left: 10px;
 }
 
-.scroll-zone-right {
-    right: 0;
-}
-
-/* Mouse position indicator styles (optional) */
-.mouse-position-indicator {
-    position: absolute;
-    width: 100%;
-    height: 3px;
-    bottom: 0;
-    left: 0;
-    background-color: rgba(76, 175, 80, 0.3);
-    z-index: 4;
-    pointer-events: none; /* Don't interfere with mouse events */
+.scroll-right-btn {
+    right: 10px;
 }
 /*右邊區塊*/
 .right-section {
@@ -519,7 +656,6 @@ button:disabled {
     margin-bottom: 1.5px;
 }
 
-
 progress {
     width: 70%;
     height: 10px;
@@ -542,7 +678,6 @@ progress::-webkit-progress-value {
 progress::-moz-progress-bar {
     background-color: #4CAF50;
 }
-
 
 button {
     padding: 12px 24px;
@@ -574,8 +709,6 @@ button:disabled {
     transform: none;
     box-shadow: none;
 }
-
-
 
 .gauges-container {
     display: flex;
@@ -632,4 +765,3 @@ button:disabled {
     transform-origin: center;
     transition: transform 0.3s ease;
 }
-
