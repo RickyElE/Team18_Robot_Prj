@@ -15,6 +15,8 @@
 #include <sys/stat.h>
 #include <cstdlib> // 用於 getenv
 
+//new
+
 // 全局變量
 std::mutex frameMutex;
 std::vector<uint8_t> latestFrame;
