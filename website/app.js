@@ -82,6 +82,9 @@ async function startCamera() {
             audio: false 
         });
 
+
+        videoElement.src = '/video_feed';
+
         videoElement.srcObject = mediaStream;
         startButton.disabled = true;
         stopButton.disabled = false;
