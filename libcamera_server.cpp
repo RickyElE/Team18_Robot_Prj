@@ -75,21 +75,24 @@ void cameraThread() {
     system("sudo pkill -f raspistill");
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
-    
-    int frameCount = 0;
-    const std::string outputPath = "/tmp/camera_frame.jpg";
+    int frameCount = 0;    //計算拍攝的影像數量
+    const std::string outputPath = "/tmp/camera_frame.jpg";    //影像暫存路徑
     
     while (running) {
+
         bool captureSuccess = false;
         
         // 首先嘗試使用 libcamera-still
-        std::string cmd = "libcamera-still -n -o " + outputPath + " --width 320 --height 240 --immediate --timeout 1 2>/dev/null";
+        std::string cmd = "libcamera-still -n -o " + outputPath + " --width 320 --height 240 --immediate --timeout 1 2>/dev/null";  //將拍攝結果儲存到 /tmp/camera_frame.jpg
         int result = system(cmd.c_str());
         
         // 檢查是否成功捕獲
         struct stat fileStat;
-        if (result == 0 && stat(outputPath.c_str(), &fileStat) == 0 && fileStat.st_size > 0) {
+
+        if (result == 0 && stat(outputPath.c_str(), &fileStat) == 0 && fileStat.st_size > 0) {   //如果讀取成功
+
             std::ifstream file(outputPath, std::ios::binary | std::ios::ate);
+
             if (file.is_open()) {
                 std::streamsize size = file.tellg();
                 file.seekg(0, std::ios::beg);
@@ -98,7 +101,8 @@ void cameraThread() {
                 if (file.read(reinterpret_cast<char*>(frame.data()), size)) {
                     // 更新最新幀
                     std::lock_guard<std::mutex> lock(frameMutex);
-                    latestFrame = frame;
+                    latestFrame = frame;                            //如果成功讀取，就把影像存入lastestFrame
+
                     if (frameCount % 5 == 0) {
                         std::cout << "Frame " << frameCount << " captured, size: " << size << " bytes" << std::endl;
                     }
@@ -153,6 +157,7 @@ void cameraThread() {
 
 // 處理客戶端連接
 void handleClient(int clientSocket, struct sockaddr_in clientAddr) {
+
     const int BUFFER_SIZE = 1024;
     char buffer[BUFFER_SIZE];
     
@@ -229,6 +234,7 @@ void handleClient(int clientSocket, struct sockaddr_in clientAddr) {
         close(clientSocket);
         return;
     }
+    
     // 處理控制請求
     else if (path.find("/control") == 0) {
         // 解析方向參數
