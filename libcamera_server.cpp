@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <cstdlib>
 #include <ctime>
+#include <queue>
 
 // 全局變量
 std::mutex frameMutex;
@@ -23,6 +24,9 @@ std::atomic<bool> running{true};
 const int PORT = 8081;
 std::string webroot = "/home/Team18_Pi/website/Team18_Robot_Prj/website"; // 網頁文件所在的路徑
 //std::string webroot = "/home/Team18_Pi/website/resi_website"; // 網頁文件所在的路徑
+std::queue<std::vector<uint8_t>> frameQueue;
+std::mutex queueMutex;
+const int MAX_QUEUE_SIZE = 3;
 
 // 函數聲明
 void cameraThread();
@@ -70,39 +74,45 @@ bool fileExists(const std::string& path) {
 void cameraThread() {
     std::cout << "Camera thread starting..." << std::endl;
     
-    // 清理可能佔用攝像頭的進程
+    // 清理可能占用摄像头的进程
     system("sudo pkill -f libcamera");
     system("sudo pkill -f raspistill");
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
-    int frameCount = 0;    //計算拍攝的影像數量
-    const std::string outputPath = "/tmp/camera_frame.jpg";    //影像暫存路徑
+    int frameCount = 0;
+    const std::string outputPath = "/tmp/camera_frame.jpg";
     
     while (running) {
-
         bool captureSuccess = false;
         
-        // 首先嘗試使用 libcamera-still
-        std::string cmd = "libcamera-still -n -o " + outputPath + " --width 320 --height 240 --immediate --timeout 1 2>/dev/null";  //將拍攝結果儲存到 /tmp/camera_frame.jpg
+        // 使用较低的分辨率和质量设置，提高传输速度
+        std::string cmd = "libcamera-still -n -o " + outputPath + 
+                         " --width 320 --height 240 --quality 70 --immediate --timeout 1 2>/dev/null";
         int result = system(cmd.c_str());
         
-        // 檢查是否成功捕獲
+        // 检查是否成功捕获
         struct stat fileStat;
-
-        if (result == 0 && stat(outputPath.c_str(), &fileStat) == 0 && fileStat.st_size > 0) {   //如果讀取成功
-
+        if (result == 0 && stat(outputPath.c_str(), &fileStat) == 0 && fileStat.st_size > 0) {
             std::ifstream file(outputPath, std::ios::binary | std::ios::ate);
-
             if (file.is_open()) {
                 std::streamsize size = file.tellg();
                 file.seekg(0, std::ios::beg);
                 
                 std::vector<uint8_t> frame(size);
                 if (file.read(reinterpret_cast<char*>(frame.data()), size)) {
-                    // 更新最新幀
+                    // 更新最新帧
                     std::lock_guard<std::mutex> lock(frameMutex);
-                    latestFrame = frame;                            //如果成功讀取，就把影像存入lastestFrame
-
+                    latestFrame = frame;
+                    
+                    // 同时将帧添加到队列中
+                    {
+                        std::lock_guard<std::mutex> lockQueue(queueMutex);
+                        if (frameQueue.size() >= MAX_QUEUE_SIZE) {
+                            frameQueue.pop();
+                        }
+                        frameQueue.push(frame);
+                    }
+                    
                     if (frameCount % 5 == 0) {
                         std::cout << "Frame " << frameCount << " captured, size: " << size << " bytes" << std::endl;
                     }
@@ -112,9 +122,9 @@ void cameraThread() {
             }
         }
         
-        // 如果使用 libcamera-still 失敗，嘗試 raspistill
+        // 如果使用 libcamera-still 失败，尝试 raspistill
         if (!captureSuccess) {
-            cmd = "raspistill -n -o " + outputPath + " -w 320 -h 240 -t 100 2>/dev/null";
+            cmd = "raspistill -n -o " + outputPath + " -w 320 -h 240 -q 70 -t 100 2>/dev/null";
             result = system(cmd.c_str());
             
             if (result == 0 && stat(outputPath.c_str(), &fileStat) == 0 && fileStat.st_size > 0) {
@@ -125,9 +135,19 @@ void cameraThread() {
                     
                     std::vector<uint8_t> frame(size);
                     if (file.read(reinterpret_cast<char*>(frame.data()), size)) {
-                        // 更新最新幀
+                        // 更新最新帧
                         std::lock_guard<std::mutex> lock(frameMutex);
                         latestFrame = frame;
+                        
+                        // 同时将帧添加到队列中
+                        {
+                            std::lock_guard<std::mutex> lockQueue(queueMutex);
+                            if (frameQueue.size() >= MAX_QUEUE_SIZE) {
+                                frameQueue.pop();
+                            }
+                            frameQueue.push(frame);
+                        }
+                        
                         if (frameCount % 5 == 0) {
                             std::cout << "Frame " << frameCount << " captured using raspistill, size: " << size << " bytes" << std::endl;
                         }
@@ -138,18 +158,8 @@ void cameraThread() {
             }
         }
         
-        // 如果仍然失敗，嘗試生成一個測試圖像
-        if (!captureSuccess) {
-            // 使用初始化的測試圖像
-            if (latestFrame.empty()) {
-                std::cout << "No frame captured and no test pattern available" << std::endl;
-            } else if (frameCount % 5 == 0) {
-                std::cout << "Using test pattern, size: " << latestFrame.size() << " bytes" << std::endl;
-            }
-        }
-        
         frameCount++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));  // 控制帧率为约10fps
     }
     
     std::cout << "Camera thread stopped" << std::endl;
@@ -157,7 +167,6 @@ void cameraThread() {
 
 // 處理客戶端連接
 void handleClient(int clientSocket, struct sockaddr_in clientAddr) {
-
     const int BUFFER_SIZE = 1024;
     char buffer[BUFFER_SIZE];
     
@@ -196,45 +205,86 @@ void handleClient(int clientSocket, struct sockaddr_in clientAddr) {
     }
     
     // 處理視頻流請求
+    // 处理视频流请求
     if (path == "/video_feed") {
         std::cout << "Video feed request received from " << inet_ntoa(clientAddr.sin_addr) << std::endl;
         
-        // 獲取最新幀
-        std::vector<uint8_t> frame;
-        {
-            std::lock_guard<std::mutex> lock(frameMutex);
-            frame = latestFrame;
-        }
-        
-        std::cout << "Sending frame with size: " << frame.size() << " bytes" << std::endl;
-        
-        // 構建 HTTP 回應 - 使用靜態 JPEG 而非 MJPEG 串流
+        // 构建 MJPEG 流响应头
         std::string header = "HTTP/1.1 200 OK\r\n"
-                             "Content-Type: image/jpeg\r\n"
-                             "Content-Length: " + std::to_string(frame.size()) + "\r\n"
-                             "Cache-Control: no-cache, no-store, must-revalidate\r\n"
-                             "Pragma: no-cache\r\n"
-                             "Expires: 0\r\n"
-                             "Access-Control-Allow-Origin: *\r\n"
-                             "Connection: close\r\n"
-                             "\r\n";
+                            "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n"
+                            "Cache-Control: no-cache, no-store, must-revalidate\r\n"
+                            "Pragma: no-cache\r\n"
+                            "Expires: 0\r\n"
+                            "Access-Control-Allow-Origin: *\r\n"
+                            "Connection: close\r\n"
+                            "\r\n";
         
-        // 發送回應
+        // 发送响应头
         send(clientSocket, header.c_str(), header.length(), 0);
         
-        // 如果有幀，發送幀數據
-        if (!frame.empty()) {
-            send(clientSocket, frame.data(), frame.size(), 0);
-            std::cout << "Frame sent successfully" << std::endl;
-        } else {
-            std::cout << "Warning: Empty frame, nothing sent" << std::endl;
+        // 持续发送视频帧
+        bool clientConnected = true;
+        int framesSent = 0;
+        
+        while (running && clientConnected) {
+            std::vector<uint8_t> currentFrame;
+            
+            // 尝试从队列获取帧
+            {
+                std::lock_guard<std::mutex> lockQueue(queueMutex);
+                if (!frameQueue.empty()) {
+                    currentFrame = frameQueue.front();
+                    frameQueue.pop();
+                }
+            }
+            
+            // 如果队列为空，使用最新帧
+            if (currentFrame.empty()) {
+                std::lock_guard<std::mutex> lock(frameMutex);
+                if (!latestFrame.empty()) {
+                    currentFrame = latestFrame;
+                }
+            }
+            
+            // 如果有帧可用，发送它
+            if (!currentFrame.empty()) {
+                // 构建帧头
+                std::string frameHeader = "--frame\r\n"
+                                        "Content-Type: image/jpeg\r\n"
+                                        "Content-Length: " + std::to_string(currentFrame.size()) + "\r\n"
+                                        "\r\n";
+                
+                // 发送帧头
+                ssize_t headerSent = send(clientSocket, frameHeader.c_str(), frameHeader.length(), 0);
+                
+                // 发送帧数据
+                if (headerSent > 0) {
+                    ssize_t dataSent = send(clientSocket, currentFrame.data(), currentFrame.size(), 0);
+                    
+                    // 发送帧结束标记
+                    if (dataSent > 0) {
+                        send(clientSocket, "\r\n", 2, 0);
+                        framesSent++;
+                        
+                        if (framesSent % 10 == 0) {
+                            std::cout << "Sent " << framesSent << " frames to client " << inet_ntoa(clientAddr.sin_addr) << std::endl;
+                        }
+                    } else {
+                        clientConnected = false;
+                    }
+                } else {
+                    clientConnected = false;
+                }
+            }
+            
+            // 控制发送速率
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
         
-        // 關閉連接
+        std::cout << "Video stream connection closed after sending " << framesSent << " frames" << std::endl;
         close(clientSocket);
         return;
     }
-    
     // 處理控制請求
     else if (path.find("/control") == 0) {
         // 解析方向參數

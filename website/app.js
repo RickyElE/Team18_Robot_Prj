@@ -79,41 +79,35 @@ function updateGauges(speed, distance) {
     }
 }
 
-// 刷新串流功能 - 使用相對路徑並定期更新圖像
+// 刷新串流功能 - 使用MJPEG流而不是定期刷新图像
 function refreshStream() {
-    // 停止任何現有的更新計時器
+    // 停止任何现有的更新计时器
     if (window.streamTimer) {
         clearTimeout(window.streamTimer);
     }
     
-    // 定義更新函數
-    function updateImage() {
-        streamImage.src = `http://${window.location.hostname}:8081/video_feed?t=${new Date().getTime()}`;
-        // 只有在圖像顯示時繼續更新
-        if (!streamImage.style.display || streamImage.style.display !== 'none') {
-            window.streamTimer = setTimeout(updateImage, 200); // 每200毫秒更新一次
-        }
-    }
-    
-    // 開始更新
-    updateImage();
+    // 重置错误状态
     errorMessage.textContent = '';
-    console.log('開始定期更新視頻流');
+    
+    // 直接设置MJPEG流源
+    streamImage.src = `/video_feed?t=${new Date().getTime()}`;
+    console.log('已连接视频流', streamImage.src);
+    
+    // 显示图像
+    streamImage.style.display = 'block';
 }
 
-// 隱藏/顯示串流功能
+// 隐藏/显示串流功能 - 简化版
 function toggleStream() {
     if (streamImage.style.display === 'none') {
+        // 显示流并刷新源
         streamImage.style.display = 'block';
-        stopButton.textContent = "隱藏串流";
-        refreshStream(); // 顯示時重新開始更新流
+        stopButton.textContent = "隐藏串流";
+        refreshStream(); // 重新加载流
     } else {
+        // 只是隐藏，不停止流
         streamImage.style.display = 'none';
-        stopButton.textContent = "顯示串流";
-        // 隱藏時停止更新
-        if (window.streamTimer) {
-            clearTimeout(window.streamTimer);
-        }
+        stopButton.textContent = "显示串流";
     }
 }
 
@@ -167,25 +161,46 @@ function simulateDataUpdates() {
 }
 
 // 頁面載入時初始化
+// 页面载入时初始化 - 修改版
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('頁面已載入，初始化應用程序...');
+    console.log('页面已载入，初始化应用程序...');
     
-    // 初始更新儀表盤
+    // 初始更新仪表盘
     updateGauges(0, 0);
     
-    // 確保串流顯示正確
+    // 立即连接视频流
     refreshStream();
     
-    // 啟動模擬數據
+    // 启动模拟数据
     simulateDataUpdates();
+    
+    // 定期检查视频流状态
+    setInterval(() => {
+        // 如果图像是显示状态但宽度为0，可能意味着流断开了
+        if (streamImage.style.display !== 'none' && 
+            streamImage.naturalWidth === 0 && 
+            streamImage.src !== '') {
+            console.log('检测到视频流可能已断开，尝试重新连接...');
+            refreshStream();
+        }
+    }, 10000); // 每10秒检查一次
 });
 
-// 處理串流加載錯誤
+// 处理串流加载错误 - 增强版本
 streamImage.onerror = function() {
-    console.error('串流加載失敗');
-    errorMessage.textContent = "無法加載攝像頭串流，請確保伺服器運行中";
-    // 5秒後自動重試
-    setTimeout(refreshStream, 5000);
+    console.error('串流加载失败');
+    errorMessage.textContent = "无法加载摄像头串流，正在尝试重新连接...";
+    
+    // 禁用图像暂时，避免连续错误
+    streamImage.style.display = 'none';
+    
+    // 3秒后自动重试
+    setTimeout(() => {
+        console.log('重试连接视频流...');
+        // 添加随机参数避免缓存
+        streamImage.src = `/video_feed?retry=true&t=${new Date().getTime()}`;
+        streamImage.style.display = 'block';
+    }, 3000);
 };
 
 // 處理串流加載成功
