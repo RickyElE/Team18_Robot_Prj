@@ -84,6 +84,7 @@ function refreshStream() {
     // 停止任何现有的更新计时器
     if (window.streamTimer) {
         clearTimeout(window.streamTimer);
+        window.streamTimer = null;
     }
     
     // 重置错误状态
@@ -96,6 +97,8 @@ function refreshStream() {
     // 显示图像
     streamImage.style.display = 'block';
 }
+
+
 
 // 隐藏/显示串流功能 - 简化版
 function toggleStream() {

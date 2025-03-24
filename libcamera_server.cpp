@@ -26,7 +26,7 @@ std::string webroot = "/home/Team18_Pi/website/Team18_Robot_Prj/website"; // 網
 //std::string webroot = "/home/Team18_Pi/website/resi_website"; // 網頁文件所在的路徑
 std::queue<std::vector<uint8_t>> frameQueue;
 std::mutex queueMutex;
-const int MAX_QUEUE_SIZE = 3;
+const int MAX_QUEUE_SIZE = 2;
 
 // 函數聲明
 void cameraThread();
@@ -87,7 +87,7 @@ void cameraThread() {
         
         // 使用较低的分辨率和质量设置，提高传输速度
         std::string cmd = "libcamera-still -n -o " + outputPath + 
-                         " --width 320 --height 240 --quality 70 --immediate --timeout 1 2>/dev/null";
+                         " --width 120 --height 90 --quality 90 --immediate --timeout 1 2>/dev/null";
         int result = system(cmd.c_str());
         
         // 检查是否成功捕获
