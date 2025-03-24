@@ -43,6 +43,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include/Publisher)
 include_directories(${CMAKE_SOURCE_DIR}/include/Subscriber)
 include_directories(${CMAKE_SOURCE_DIR}/include/driver/PCA9685)
 include_directories(${CMAKE_SOURCE_DIR}/include/driver/DCMotor)
+include_directories(${CMAKE_SOURCE_DIR}/include/driver/Ultrasonic)
 
 # add_custom_target(
 #     messages
@@ -71,3 +72,6 @@ add_executable(pwm_test ${CMAKE_SOURCE_DIR}/src/test/pwm_test.cpp ${CMAKE_SOURCE
 add_executable(motor_test ${CMAKE_SOURCE_DIR}/src/test/motor_test.cpp 
                             ${CMAKE_SOURCE_DIR}/include/driver/PCA9685/PCA9685.cpp 
                             ${CMAKE_SOURCE_DIR}/include/driver/DCMotor/motor.cpp)
+
+add_executable(Ultrasonic ${CMAKE_SOURCE_DIR}/include/driver/Ultrasonic/Ultrasonic.cpp)
+target_link_libraries(Ultrasonic PRIVATE gpiod)

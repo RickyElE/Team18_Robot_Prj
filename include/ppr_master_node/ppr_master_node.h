@@ -27,7 +27,7 @@ public:
     void run();
 
     bool init();
-    bool subscribe(std::function<void()> callback);
+    bool subscribe(std::function<void()> callback); // 訂閱 Fast DDS 訊息
 
     bool start(){
         running_ = true;
@@ -47,7 +47,7 @@ bool ppr_master_node::init(){
     // {
     //     std::cout << "Failed to initialize subscriber" << std::endl;
     //     return false;
-    // }
+    // }s
     return true;
 }
 
@@ -57,7 +57,7 @@ bool ppr_master_node::subscribe(std::function<void()> callback){
 
 void ppr_master_node::run(){
     std::cout << "Running ppr_master_node" << std::endl;
-    BatteryMsg battery_msg{};
+    BatteryMsg battery_msg{}; // 用來儲存接收的電池訊息
     eprosima::fastdds::dds::DomainParticipantQos pqos;
     pqos.name("Participant_Subscriber");
     Subscriber<BatteryMsgPubSubType, BatteryMsg> battery_subscriber(BatteryMsgPubSubType(),&battery_msg,
@@ -65,7 +65,7 @@ void ppr_master_node::run(){
     battery_subscriber.init();
     while(running_){
         // BatteryMsg msg;
-        battery_subscriber.listener_->wait_for_data();
+        battery_subscriber.listener_->wait_for_data(); // 等待新數據
         // msg = battery_subscriber.listener_->get_data();
         // std::cout<<"Voltage is: "<<msg.voltage() << " ,Percentage is : "<<msg.percentage()<<std::endl;
         std::cout<<"battery_msg: Voltage is: "<<battery_msg.voltage() << " ,Percentage is : "<<battery_msg.percentage()<<std::endl;

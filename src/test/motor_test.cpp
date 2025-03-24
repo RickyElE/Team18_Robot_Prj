@@ -11,6 +11,10 @@ int main(){
     delay.delay_ms(2000);
     motor.Backward();
     delay.delay_ms(2000);
+    motor.TurnLeft();
+    delay.delay_ms(2000);
+    motor.TurnRight();
+    delay.delay_ms(2000);
     motor.Stop();
     return 0;
 

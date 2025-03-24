@@ -163,8 +163,8 @@ private:
 
 class BMS : public ADSCallbackInterface{
 private:
-    const double vol_max = 8.4;
-    const double vol_min = 6.0;
+    const double vol_max = 6.2;
+    const double vol_min = 3.7;
     double voltage = 0;
     double percentage_ = 0;
     ADS7830 ads_;
