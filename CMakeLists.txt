@@ -63,7 +63,7 @@ target_link_libraries(ppr_master_node BatteryMsg fastcdr fastrtps)
 add_executable(ppr_remote_node ${CMAKE_SOURCE_DIR}/src/ppr_remote_node/ppr_remote_node.cpp)
 target_link_libraries(ppr_remote_node BatteryMsg fastcdr fastrtps)
 
-add_executable(bms ${CMAKE_SOURCE_DIR}/src/driver/bms.cpp)
+add_executable(bms ${CMAKE_SOURCE_DIR}/src/test/bms.cpp)
 
 add_executable(delay ${CMAKE_SOURCE_DIR}/src/test/delay.cpp)
 
@@ -73,5 +73,6 @@ add_executable(motor_test ${CMAKE_SOURCE_DIR}/src/test/motor_test.cpp
                             ${CMAKE_SOURCE_DIR}/include/driver/PCA9685/PCA9685.cpp 
                             ${CMAKE_SOURCE_DIR}/include/driver/DCMotor/motor.cpp)
 
-add_executable(Ultrasonic ${CMAKE_SOURCE_DIR}/include/driver/Ultrasonic/Ultrasonic.cpp)
-target_link_libraries(Ultrasonic PRIVATE gpiod)
+add_executable(ultrasonic_test ${CMAKE_SOURCE_DIR}/src/test/ultrasonic_test.cpp 
+                            ${CMAKE_SOURCE_DIR}/include/driver/Ultrasonic/Ultrasonic.cpp)
+target_link_libraries(ultrasonic_test PRIVATE gpiod)

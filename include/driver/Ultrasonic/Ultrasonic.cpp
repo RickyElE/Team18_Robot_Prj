@@ -35,7 +35,7 @@ bool Ultrasonic::init(){
     }
     lineGPIO_echo = gpiod_chip_get_line(chipGPIO_echo, _ECHO_OFFSET);
     if (lineGPIO_echo == NULL){
-        gpiod_chip_close(chipGPIO_trig);
+        gpiod_chip_close(chipGPIO_echo);
         std::cout<< "lineGPIO_echo error" << std::endl;
         return false;
     }
@@ -88,7 +88,8 @@ bool Ultrasonic::reqDistance(){
     delay.delay_us(10);
     ret = trigOuput(0);
     if (!ret) return false;
-    __count = 0;
+    // std::cout << "Has requiring sensor!" << std::endl;
+    able2Req = false;
     return true;
 }
 
@@ -100,20 +101,26 @@ bool Ultrasonic::start(){
 
 void Ultrasonic::echoEvent(gpiod_line_event& event){
     for(auto &uci: ultsonCallbackInterfaces){
-        uci->hasDistance(event, echo_start_time, echo_finish_time, time_mutex_, able_to_cal);
+        uci->hasDistance(event, echo_start_time, distance,time_mutex_,able2Req);
+        // std::cout << "distance is: " << distance << std::endl;
     }
 }
 
 void Ultrasonic::worker(){
+    reqDistance();
     while(running){
-        reqDistance();
+        if (able2Req){
+            reqDistance();
+        }
         const timespec ts = {ISR_TIMEOUT,0};
         int r = gpiod_line_event_wait(lineGPIO_echo, &ts);
         if (1 == r){
+            // std::cout << "Has distance!" << std::endl;
             gpiod_line_event event;
             gpiod_line_event_read(lineGPIO_echo, &event);
             echoEvent(event);
         }
+        // std::cout << "Distance is: " << getDistance() << std::endl;
     }
 }
 
