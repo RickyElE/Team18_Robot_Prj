@@ -16,7 +16,7 @@
 class Ultrasonic{
 public:
     Ultrasonic(){};
-    ~Ultrasonic(){};
+    ~Ultrasonic();
 
     bool init();
     bool start();
@@ -74,9 +74,9 @@ private:
 class DistanceCalculator:public Ultrasonic::UltrasonicCallbackInterface{
     virtual void hasDistance(gpiod_line_event& e, std::chrono::steady_clock::time_point& s,double& distance,std::mutex& t, std::atomic_bool& able2Req) override{
         if (e.event_type == GPIOD_LINE_EVENT_RISING_EDGE){
-            std::unique_lock<std::mutex> lock(t);
+            // std::unique_lock<std::mutex> lock(t);
             s = std::chrono::steady_clock::now();
-            lock.unlock();
+            // lock.unlock();
             // std::cout<<"It is rising edge!" << std::endl;
         }
         else
@@ -84,18 +84,18 @@ class DistanceCalculator:public Ultrasonic::UltrasonicCallbackInterface{
             std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();
             std::chrono::steady_clock::time_point begin_time;
             {
-                std::unique_lock<std::mutex> lock(t);
+                // std::unique_lock<std::mutex> lock(t);
                 begin_time = s;
-                lock.unlock();
+                // lock.unlock();
             }
             std::chrono::duration<double> duration_us = end_time - begin_time;
             double time_us = duration_us.count() * 1e6;
             double distance_cm = ((time_us * 342.62 / 2)/10000000) * 100;
             distance = distance_cm;
             {
-                std::unique_lock<std::mutex> lock(t);
+                // std::unique_lock<std::mutex> lock(t);
                 able2Req = true;
-                lock.unlock();
+                // lock.unlock();
             }
             // std::cout << "distance is: " << distance << std::endl;
         }

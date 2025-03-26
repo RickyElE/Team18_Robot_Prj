@@ -12,6 +12,7 @@ int main(){
     prescale = pwm_test.readPrescale();
     std::cout << "Prescale is : " << std::to_string(prescale) << std::endl;
     uint16_t pwm = pwm_test.getPWM(15, false);
+    pwm_test.wakeup();
     std::cout << "pwm is : " << std::to_string(pwm) << std::endl;
     pwm_test.setPin(14, 0,false);
     pwm_test.setPin(15, 0,false);

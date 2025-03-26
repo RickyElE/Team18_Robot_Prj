@@ -124,18 +124,18 @@ void Ultrasonic::worker(){
     }
 }
 
-
+Ultrasonic::~Ultrasonic(){
+    if (lineGPIO_trig != NULL) gpiod_line_release(lineGPIO_trig);
+    if (lineGPIO_echo != NULL) gpiod_line_release(lineGPIO_echo);
+    if (chipGPIO_trig != NULL) gpiod_chip_close(chipGPIO_trig);
+    if (chipGPIO_echo != NULL) gpiod_chip_close(chipGPIO_echo);
+}
 
 void Ultrasonic::stop(){
     running = false;
     if (ultsonThread.joinable()){
         ultsonThread.join();
     }
-
-    if (lineGPIO_trig != nullptr) gpiod_line_release(lineGPIO_trig);
-    if (lineGPIO_echo != nullptr) gpiod_line_release(lineGPIO_echo);
-    if (chipGPIO_trig != nullptr) gpiod_chip_close(chipGPIO_trig);
-    if (chipGPIO_echo != nullptr) gpiod_chip_close(chipGPIO_echo);
 }
 // int main(){
 //     gpiod_chip *chipGPIO_trig = nullptr;

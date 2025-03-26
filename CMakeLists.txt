@@ -76,3 +76,9 @@ add_executable(motor_test ${CMAKE_SOURCE_DIR}/src/test/motor_test.cpp
 add_executable(ultrasonic_test ${CMAKE_SOURCE_DIR}/src/test/ultrasonic_test.cpp 
                             ${CMAKE_SOURCE_DIR}/include/driver/Ultrasonic/Ultrasonic.cpp)
 target_link_libraries(ultrasonic_test PRIVATE gpiod)
+
+add_executable(Chassis_test ${CMAKE_SOURCE_DIR}/src/test/Chassis_test.cpp 
+                            ${CMAKE_SOURCE_DIR}/include/driver/PCA9685/PCA9685.cpp 
+                            ${CMAKE_SOURCE_DIR}/include/driver/DCMotor/motor.cpp
+                            ${CMAKE_SOURCE_DIR}/include/driver/Ultrasonic/Ultrasonic.cpp)
+target_link_libraries(Chassis_test PRIVATE gpiod)

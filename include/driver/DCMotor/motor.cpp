@@ -9,6 +9,13 @@ bool Motor::init(){
     pwm.setPWMFreq(50);
     return true;
 }
+void Motor::Wakeup(){
+    pwm.wakeup();
+}
+
+void Motor::Sleep(){
+    pwm.sleep();
+}
 
 void Motor::Forward(){
     pwm.setPin(MOTOR_LEFT_1, 0);
