@@ -1,7 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include "PCA9685.h"  // 假设存在适用于 PCA9685 的 C++ 驱动库
+#include "PCA9685.h"  
 
 // 设置 PCA9685 有效通道数
 const int NUM_CHANNELS = 16;
@@ -34,10 +34,11 @@ void clear_all_channels(PCA9685 &pca) {
     }
 }
 
-// 示例测试函数：让所有通道依次从 0° 运动到 180°，再回到 0°
+
 // 假设 set_angle 函数已经在其他地方定义，类似如下形式：
 // void set_angle(PCA9685 &pca, int channel, int angle);
 
+//初始化机械臂各个位置
 void initial_robarm(PCA9685 &pca) {
     set_angle(pca, 0, 180);
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
