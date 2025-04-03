@@ -3,6 +3,7 @@ project(ppr_robotic CXX)
 
 find_package(fastcdr REQUIRED)
 find_package(fastrtps REQUIRED)
+find_package(OpenCV REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -82,3 +83,30 @@ add_executable(Chassis_test ${CMAKE_SOURCE_DIR}/src/test/Chassis_test.cpp
                             ${CMAKE_SOURCE_DIR}/include/driver/DCMotor/motor.cpp
                             ${CMAKE_SOURCE_DIR}/include/driver/Ultrasonic/Ultrasonic.cpp)
 target_link_libraries(Chassis_test PRIVATE gpiod)
+
+add_executable(test_sysinfo ${CMAKE_SOURCE_DIR}/src/test/test_sysinfo.cpp)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBCAMERA REQUIRED libcamera)
+pkg_check_modules(OPENCV REQUIRED opencv4)
+
+include_directories(${LIBCAMERA_INCLUDE_DIRS}
+                    ${OpenCV_INCLUDE_DIRS}
+)
+link_directories(   ${LIBCAMERA_LIBRARY_DIRS}
+                    ${Opencv_LIBRARY_DIRS}
+                    /usr/local/lib
+)
+
+add_executable(Camera ${CMAKE_SOURCE_DIR}/include/driver/Camera/Camera.cpp)
+target_link_libraries(Camera
+    cam2opencv
+    ${LIBCAMERA_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+)
+
+include_directories(${CMAKE_SOURCE_DIR}/main)
+add_executable(main 
+${CMAKE_SOURCE_DIR}/include/driver/PCA9685/PCA9685.cpp 
+${CMAKE_SOURCE_DIR}/include/driver/DCMotor/motor.cpp
+${CMAKE_SOURCE_DIR}/main/main.cpp)

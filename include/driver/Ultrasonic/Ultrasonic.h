@@ -90,7 +90,7 @@ class DistanceCalculator:public Ultrasonic::UltrasonicCallbackInterface{
             }
             std::chrono::duration<double> duration_us = end_time - begin_time;
             double time_us = duration_us.count() * 1e6;
-            double distance_cm = ((time_us * 342.62 / 2)/10000000) * 100;
+            double distance_cm = (((time_us / 10000000) * 340) / 2) * 1000;
             distance = distance_cm;
             {
                 // std::unique_lock<std::mutex> lock(t);

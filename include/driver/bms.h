@@ -181,6 +181,7 @@ public:
     };
     ~BMS(){
         std::cout << "BMS has been deleted!" << std::endl;
+        this->stop();
     };
     void start(int interval_ms = 1000){
         ads_.registerCallback(this);
@@ -209,6 +210,9 @@ private:
 void BMS::setPercentage(){
     // this->percentage = (this->voltage / this->vol_max) * 100;
     double percentage = ((this->voltage - this->vol_min) / (this->vol_max - this->vol_min)) * 100;
+    if (percentage >= 100.0){percentage = 100.0;}
+    else if (percentage <= 0.0){percentage = 0.0;}
+    
     this->percentage_ = percentage;
 }
 void BMS::setVoltage(uint16_t raw_data){
@@ -238,6 +242,8 @@ void BMS::showPercentage(){
 double BMS::getPercentage(){
     // this->percentage_ = (this->voltage / this->vol_max) * 100;
     double percentage = ((this->voltage - this->vol_min) / (this->vol_max - this->vol_min)) * 100;
+    if (percentage >= 100.0){percentage = 100.0;}
+    else if (percentage <= 0.0){percentage = 0.0;}
     this->percentage_ = percentage;
 #ifdef DEBUG
     std::cout << "Percentage is:" << this->percentage << "%" << std::endl;
