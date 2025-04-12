@@ -31,10 +31,8 @@ def Angle_calculate(is_horizontal=True, deltaX=10, deltaY=10, len_AB=57.0, len_B
     global current_A, current_B, current_C
 
     # 根据运动类型计算目标位置 target_A
-    if is_horizontal:
-        target_A = [current_A[0] + deltaX, current_A[1]]
-    else:
-        target_A = [current_A[0], current_A[1] + deltaY]
+    target_A = [current_A[0] + deltaX, current_A[1] + deltaY]
+
 
     # 计算从 current_C 到 target_A 的距离（边 AC 的长度）
     len_AC = math.sqrt((target_A[0] - current_C[0])**2 + (target_A[1] - current_C[1])**2)
@@ -58,11 +56,64 @@ def Angle_calculate(is_horizontal=True, deltaX=10, deltaY=10, len_AB=57.0, len_B
 
     return f_angle1, f_angle2
 
-# 示例调用
-for i in range (3):
-    f_angle1, f_angle2 = Angle_calculate(is_horizontal=True)
+def MoveForward():
+    """
+    向前运动：水平运动中 x 坐标增加
+    """
+    f_angle1, f_angle2 = Angle_calculate(is_horizontal=True, deltaX=10, deltaY=0)
+    print(f"[MoveForward] f_angle1: {f_angle1:.2f}  f_angle2: {f_angle2:.2f}")
+    #set_angle(0, f_angle1)
+    #set_angle(1, f_angle2)
 
-    print("计算得到的 angle2（角度）：", f_angle2)
-    print("计算得到的 angle1（角度）：", f_angle1)
-    print("更新后的 current_A:", current_A)
-    print("更新后的 current_B:", current_B)
+def MoveBackward():
+    """
+    向后运动：水平运动中 x 坐标减少
+    """
+    f_angle1, f_angle2 = Angle_calculate(is_horizontal=True, deltaX=-10, deltaY=0)
+    print(f"[MoveBackward] f_angle1: {f_angle1:.2f}  f_angle2: {f_angle2:.2f}")
+    #set_angle(0, f_angle1)
+    #set_angle(1, f_angle2)
+
+def MoveUp():
+    """
+    向上运动：竖直运动中 y 坐标增加
+    """
+    f_angle1, f_angle2 = Angle_calculate(is_horizontal=False, deltaX=0, deltaY=10)
+    print(f"[MoveUp] f_angle1: {f_angle1:.2f}  f_angle2: {f_angle2:.2f}")
+    #set_angle(0, f_angle1)
+    #set_angle(1, f_angle2)
+
+def MoveDown():
+    """
+    向下运动：竖直运动中 y 坐标减少
+    """
+    f_angle1, f_angle2 = Angle_calculate(is_horizontal=False, deltaX=0, deltaY=-10)
+    print(f"[MoveDown] f_angle1: {f_angle1:.2f}  f_angle2: {f_angle2:.2f}")
+    #set_angle(0, f_angle1)
+    #set_angle(1, f_angle2)
+
+
+print("初始状态:")
+print("current_A:", current_A)
+print("current_B:", current_B)
+
+
+print("\n向前移动:")
+MoveForward()
+print("更新后的 current_A:", current_A)
+print("更新后的 current_B:", current_B)
+
+print("\n向后移动:")
+MoveBackward()
+print("更新后的 current_A:", current_A)
+print("更新后的 current_B:", current_B)
+
+print("\n向上移动:")
+MoveUp()
+print("更新后的 current_A:", current_A)
+print("更新后的 current_B:", current_B)
+
+print("\n向下移动:")
+MoveDown()
+print("更新后的 current_A:", current_A)
+print("更新后的 current_B:", current_B)
