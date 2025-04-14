@@ -36,9 +36,9 @@ using namespace eprosima::fastcdr::exception;
 
 BatteryMsg::BatteryMsg()
 {
-    // m_voltage com.eprosima.idl.parser.typecode.PrimitiveTypeCode@7a9273a8
+    // m_voltage com.eprosima.idl.parser.typecode.PrimitiveTypeCode@23d2a7e8
     m_voltage = 0.0;
-    // m_percentage com.eprosima.idl.parser.typecode.PrimitiveTypeCode@7ce6a65d
+    // m_percentage com.eprosima.idl.parser.typecode.PrimitiveTypeCode@4abdb505
     m_percentage = 0.0;
 
 }

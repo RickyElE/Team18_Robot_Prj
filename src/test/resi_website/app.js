@@ -59,7 +59,7 @@ function setupWebSocketConnection() {
     console.log("正在建立 WebSocket 連線...");
     
     // 替換為您的樹莓派 IP 
-    const socket = new WebSocket('ws://192.168.1.241:8084');
+    const socket = new WebSocket('ws://192.168.137.202:8084');
     
     // 連接打開時
     socket.onopen = function() {
@@ -87,8 +87,9 @@ function setupWebSocketConnection() {
         });
             
             // 如果有其他數據(例如 CPU, GPU)，也可以添加到 resourceData
-            if (data.cpu) {
-                resourceData.cpuUsage = data.cpu.usage;
+            // if (data.cpu) 
+            {
+                // resourceData.cpuUsage = data.cpu.usage;
                 resourceData.cpuTemp = data.cpu.temperature;
             }
             
@@ -469,11 +470,11 @@ function updateSystemResources(data) {
         updateBatteryVoltage(data.voltage);
     }
 
-
+    if (data.cpuTemp !== undefined) updateProgressBar('cpu-temperature', data.cpuTemp);
     /*
     // Update progress bars with real data
     if (data.cpuUsage !== undefined) updateProgressBar('cpu-usage', data.cpuUsage);
-    if (data.cpuTemp !== undefined) updateProgressBar('cpu-temperature', data.cpuTemp);
+    
     if (data.gpuUsage !== undefined) updateProgressBar('gpu-usage', data.gpuUsage);
     if (data.gpuTemp !== undefined) updateProgressBar('gpu-temperature', data.gpuTemp);
     if (data.ramUsage !== undefined) updateProgressBar('ram-usage', data.ramUsage);

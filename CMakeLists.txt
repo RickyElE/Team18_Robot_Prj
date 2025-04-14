@@ -5,7 +5,9 @@ find_package(fastcdr REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(OpenCV REQUIRED)
 
+
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 message(STATUS "Configuring PPR_ROBOTIC...")
 find_package(Threads REQUIRED)
@@ -36,6 +38,10 @@ set_target_properties(BatteryMsg PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${BATTERY_D
 
 add_dependencies(BatteryMsg battery_messages)
 
+# 添加 libcam2opencv 库的路径和头文件
+include_directories(/home/Team18_Pi/Team18_prj/Zhihong/libcamera2opencv-master)
+link_directories(/home/Team18_Pi/Team18_prj/Zhihong/libcamera2opencv-master)
+
 include_directories(${CMAKE_SOURCE_DIR}/include/driver)
 include_directories(${CMAKE_SOURCE_DIR}/include/ppr_chassis_node)
 include_directories(${CMAKE_SOURCE_DIR}/include/ppr_master_node)
@@ -45,6 +51,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include/Subscriber)
 include_directories(${CMAKE_SOURCE_DIR}/include/driver/PCA9685)
 include_directories(${CMAKE_SOURCE_DIR}/include/driver/DCMotor)
 include_directories(${CMAKE_SOURCE_DIR}/include/driver/Ultrasonic)
+include_directories(${CMAKE_SOURCE_DIR}/include/driver/SysInfo)
 
 # add_custom_target(
 #     messages
@@ -108,5 +115,10 @@ target_link_libraries(Camera
 include_directories(${CMAKE_SOURCE_DIR}/main)
 add_executable(main 
 ${CMAKE_SOURCE_DIR}/include/driver/PCA9685/PCA9685.cpp 
+${CMAKE_SOURCE_DIR}/include/driver/SysInfo/SystemInfo.cpp
 ${CMAKE_SOURCE_DIR}/include/driver/DCMotor/motor.cpp
 ${CMAKE_SOURCE_DIR}/main/main.cpp)
+
+add_executable(sysInfo_test 
+${CMAKE_SOURCE_DIR}/src/test/sysInfo_test.cpp 
+${CMAKE_SOURCE_DIR}/include/driver/SysInfo/SystemInfo.cpp)  

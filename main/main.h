@@ -16,6 +16,7 @@
 #include "motor.h"
 #include "delay.h"
 #include "bms.h"
+#include "SystemInfo.h"
 
 typedef websocketpp::server<websocketpp::config::asio> websocket_server;
 
@@ -36,6 +37,16 @@ public:
         }
         motor.Wakeup();
         bms.start();
+
+        cpuTemp_callback.systeminfo = &cpuTempture;
+
+        cpuTempture.Init(systemInfo::CPU_TEMP);
+
+        cpuTempture.registerCallback(&cpuTemp_callback);
+
+        cpuTempture.Start();
+
+
     }
 
     void on_open(websocketpp::connection_hdl hdl) {
@@ -105,12 +116,19 @@ public:
     // 發送電池數據到 WebSocket
     void send_battery_status() {
         while(running_){
-            // std::lock_guard<std::mutex> lock(mutex_);
+            std::lock_guard<std::mutex> lock(mutex_);
             float voltage = bms.getVoltage();
             float percentage = bms.getPercentage();
+            double temperature = cpuTempture.getCPUTempture();
             if (ws_connected_) {
                 try {
-                    nlohmann::json msg = {{"voltage", voltage}, {"percentage", percentage}};
+                    nlohmann::json msg = {
+                        {"voltage", voltage}, 
+                        {"percentage", percentage}, 
+                        {"cpu", {
+                            "temperature",temperature
+                        }}
+                    };
                     ws_server_.send(ws_hdl_, msg.dump(), websocketpp::frame::opcode::text);
                     std::cout << "Sent battery data to WebSocket: " << msg.dump() << std::endl;
                 } catch (const std::exception& e) {
@@ -121,18 +139,41 @@ public:
         
     }
 
+    // void send_SystemInfo(){
+    //     while(sysInfo_running_){
+    //         double temperature = cpuTempture.getCPUTempture();
+    //         if (ws_connected_){
+    //             try{
+    //                 nlohmann::json msg = {{"cpu-temperature", temperature}};
+    //                 ws_server_.send(ws_hdl_, msg.dump(), websocketpp::frame::opcode::text);
+    //                 std::cout << "Sent cpu-temperature to WebSocket: " << msg.dump() << std::endl;
+    //             }catch (const std::exception& e) {
+    //                 std::cerr << "Error sending to WebSocket: " << e.what() << std::endl;
+    //             }
+    //         }
+    //     }
+    // }
+
     bool start(){
         running_ = true;
+        sysInfo_running_ = true;
         bms_thread_ = std::thread(&WebsiteServer::send_battery_status,this);
         // 啟動 WebSocket 伺服器線程
         ws_thread_ = std::thread(&WebsiteServer::start_websocket_server, this);
+
+        // sysinfo_thread_ = std::thread(&WebsiteServer::send_SystemInfo, this);
         return true;
     }
 
     void stop(){
         running_ = false;
+        sysInfo_running_ = false;
+        cpuTempture.Stop();
         if(bms_thread_.joinable()){
             bms_thread_.join();
+        }
+        if(sysinfo_thread_.joinable()){
+            sysinfo_thread_.join();
         }
         if(ws_server_.is_listening()){
             ws_server_.stop_listening();
@@ -145,17 +186,27 @@ public:
     }
 private:
     std::atomic<bool> running_ = false;
+    std::atomic_bool sysInfo_running_ = false;
     std::thread ws_thread_;
     std::thread bms_thread_;
+    std::thread sysinfo_thread_;
 
     websocket_server ws_server_;
     websocketpp::connection_hdl ws_hdl_;
     bool ws_connected_;
     std::mutex mutex_;
 
+    SystemInfo cpuTempture;
+    SystemInfo cpuUsage;
+
+    Mycallback cpuTemp_callback;
+    Mycallback cpuUsage_callback;
+
     Motor motor = Motor();
     Delay delay = Delay();
     BMS   bms;
+    
+
 };
 
 #endif
