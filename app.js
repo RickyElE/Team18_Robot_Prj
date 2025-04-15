@@ -32,8 +32,7 @@ function handleLogout() {
 }
 
 // DOM Elements
-// const videoElement = document.getElementById('camera-stream');
-const videoElement = document.querySelector('#camera-container img');
+const videoElement = document.getElementById('camera-stream');
 const startButton = document.getElementById('start-btn');
 const stopButton = document.getElementById('stop-btn');
 const captureButton = document.getElementById('capture-btn');
@@ -60,7 +59,7 @@ function setupWebSocketConnection() {
     console.log("正在建立 WebSocket 連線...");
     
     // 替換為您的樹莓派 IP 
-    const socket = new WebSocket('ws://192.168.1.241:8082');
+    const socket = new WebSocket('ws://192.168.1.86:8084');
     
     // 連接打開時
     socket.onopen = function() {
@@ -75,27 +74,20 @@ function setupWebSocketConnection() {
             // 解析從伺服器收到的 JSON 數據
             const data = JSON.parse(event.data);
             console.log('收到數據:', data);
-            
-            // 創建系統資源數據格式
-            const resourceData = {};
-             // 直接传入完整数据
-        updateSystemResources(data);
 
-          // 直接使用数据更新
-        updateSystemResources({
-            batteryLevel: data.percentage,
-            voltage: data.voltage
-        });
+            // 使用您的現有函數更新資源顯示
+            updateSystemResources(data);
+        
             
             // 如果有其他數據(例如 CPU, GPU)，也可以添加到 resourceData
-            if (data.cpu) {
+            if (data.cpu) 
+            {
                 resourceData.cpuUsage = data.cpu.usage;
                 resourceData.cpuTemp = data.cpu.temperature;
             }
             
             if (data.gpu) {
                 resourceData.gpuUsage = data.gpu.usage;
-                resourceData.gpuTemp = data.gpu.temperature;
             }
             
             if (data.memory) {
@@ -103,8 +95,6 @@ function setupWebSocketConnection() {
                 resourceData.swapUsage = data.memory.swap;
             }
             
-            // 使用您的現有函數更新資源顯示
-            updateSystemResources(resourceData);
             
         } catch (error) {
             console.error('處理數據時出錯:', error);
@@ -144,14 +134,8 @@ function reconnect() {
 
 
 // Function to update gauges
-function updateGauges(speed, distance) {
-    // Update speed gauge
-    const speedPointer = document.getElementById('speed-pointer');
-    const speedText = document.getElementById('speed-text');
-    const speedAngle = (speed / maxSpeed) * 180 - 90;
-    speedPointer.style.transform = `rotate(${speedAngle}deg)`;
-    speedText.textContent = `${speed} km/h`;
-
+function updateGauges(distance) {
+  
     // Update distance gauge
     const distancePointer = document.getElementById('distance-pointer');
     const distanceText = document.getElementById('distance-text');
@@ -162,40 +146,23 @@ function updateGauges(speed, distance) {
 
 // Start camera function
 async function startCamera() {
-
     try {
-        // 不再使用 getUserMedia，而是直接設置影像源
-        // videoElement.src = "http://你的樹莓派IP:端口/攝像頭流路徑";
-        // 或者對於 MJPEG 流
-        videoElement.src = "http://192.168.1.241:8081/?action=stream";
-        
-        videoElement.onloadedmetadata = function() {
-            startButton.disabled = true;
-            stopButton.disabled = false;
-            captureButton.disabled = false;
-            if (errorMessage) errorMessage.textContent = '';
-        };
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: "environment"
+            }, 
+            audio: false 
+        });
+
+        videoElement.srcObject = mediaStream;
+        startButton.disabled = true;
+        stopButton.disabled = false;
+        captureButton.disabled = false;
+        if (errorMessage) errorMessage.textContent = '';
     } catch (err) {
         console.error('Camera access error:', err);
         if (errorMessage) errorMessage.textContent = `Error: ${err.message}`;
     }
-    // try {
-    //     mediaStream = await navigator.mediaDevices.getUserMedia({
-    //         video: { 
-    //             facingMode: "environment"
-    //         }, 
-    //         audio: false 
-    //     });
-
-    //     videoElement.srcObject = mediaStream;
-    //     startButton.disabled = true;
-    //     stopButton.disabled = false;
-    //     captureButton.disabled = false;
-    //     if (errorMessage) errorMessage.textContent = '';
-    // } catch (err) {
-    //     console.error('Camera access error:', err);
-    //     if (errorMessage) errorMessage.textContent = `Error: ${err.message}`;
-    // }
 }
 
 // Stop camera function
@@ -217,11 +184,26 @@ function handleDirection(direction) {
     // Simulate gauge changes (replace with actual values from robot)
     let currentSpeed = parseInt(document.getElementById('speed-text').textContent);
     let currentDistance = parseInt(document.getElementById('distance-text').textContent);
+    let moveInterval = null;
     
     if (direction === 'forward') {
         currentSpeed = Math.min(maxSpeed, currentSpeed + 10);
-    } else if (direction === 'back') {
+        window.robotSocket.send(JSON.stringify({type:"command", action: "move_forward"}));
+    } 
+    else 
+    if (direction === 'back') {
         currentSpeed = Math.max(0, currentSpeed - 10);
+        window.robotSocket.send(JSON.stringify({type:"command", action: "move_back"}));
+    }
+    else 
+    if (direction === 'left') {
+        currentSpeed = Math.max(0, currentSpeed - 10);
+        window.robotSocket.send(JSON.stringify({type:"command", action: "move_left"}));
+    }
+    else 
+    if (direction === 'right') {
+        currentSpeed = Math.max(0, currentSpeed - 10);
+        window.robotSocket.send(JSON.stringify({type:"command", action: "move_right"}));
     }
     
     // Random distance change for demo purposes
@@ -231,38 +213,9 @@ function handleDirection(direction) {
 }
 
 // Handle camera movement
-// function handleCameraMove(direction) {
-//     console.log(`Camera moving: ${direction}`);
-//     // Add camera servo control logic here
-// }
-
-
-// Handle camera movement
-// Handle camera movement
 function handleCameraMove(direction) {
     console.log(`Camera moving: ${direction}`);
-    
-    // 獲取命令字符
-    const key = direction === 'up' ? 'q' : 'w';
-    
-    // 使用標準 XMLHttpRequest 而不是 WebSocket 以提高兼容性
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', `http://192.168.1.241:8081?key=${key}`, true);
-    
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            console.log(`命令 ${key} 已發送成功`);
-        } else {
-            console.error('命令發送失敗，狀態碼:', xhr.status);
-        }
-    };
-    
-    xhr.onerror = function() {
-        console.error('發送命令時出錯');
-    };
-    
-    // 發送請求
-    xhr.send();
+    // Add camera servo control logic here
 }
 
 // Function to handle mechanical arm control
@@ -272,89 +225,43 @@ function handleArmControl(action) {
 }
 
 // Capture screenshot
-// function captureScreenshot() {
-//     if (!videoElement.srcObject) return;
-    
-//     // Create canvas
-//     const canvas = document.createElement('canvas');
-//     const ctx = canvas.getContext('2d');
-    
-//     // Set canvas dimensions
-//     canvas.width = videoElement.videoWidth;
-//     canvas.height = videoElement.videoHeight;
-//     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-    
-//     // Get image URL
-//     const imgDataURL = canvas.toDataURL('image/png');
-    
-//     // Create image element
-//     const img = document.createElement('img');
-//     img.src = imgDataURL;
-//     img.setAttribute('alt', 'Screenshot ' + new Date().toLocaleTimeString());
-    
-//     // Create timestamp element
-//     const now = new Date();
-//     const timeString = now.toLocaleTimeString();
-//     const timestamp = document.createElement('div');
-//     timestamp.textContent = timeString;
-//     timestamp.className = 'screenshot-timestamp';
-    
-//     // Create container for the image and timestamp
-//     const container = document.createElement('div');
-//     container.className = 'screenshot-item';
-//     container.appendChild(img);
-//     container.appendChild(timestamp);
-    
-//     // Add to screenshot list
-//     screenshotList.appendChild(container);
-    
-//     // Scroll to the newly added screenshot
-//     setTimeout(() => {
-//         screenshotList.scrollLeft = screenshotList.scrollWidth;
-//     }, 100);
-// }
-
 function captureScreenshot() {
-    // 獲取圖像元素
-    const imgElement = document.querySelector('#camera-container img');
-    if (!imgElement || !imgElement.complete) return;
+    if (!videoElement.srcObject) return;
     
-    // 創建 canvas
+    // Create canvas
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
-    // 設置 canvas 尺寸
-    canvas.width = imgElement.naturalWidth || imgElement.width;
-    canvas.height = imgElement.naturalHeight || imgElement.height;
+    // Set canvas dimensions
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
     
-    // 將圖像繪製到 canvas
-    ctx.drawImage(imgElement, 0, 0, canvas.width, canvas.height);
-    
-    // 獲取圖像 URL
+    // Get image URL
     const imgDataURL = canvas.toDataURL('image/png');
     
-    // 創建圖像元素
+    // Create image element
     const img = document.createElement('img');
     img.src = imgDataURL;
     img.setAttribute('alt', 'Screenshot ' + new Date().toLocaleTimeString());
     
-    // 創建時間戳元素
+    // Create timestamp element
     const now = new Date();
     const timeString = now.toLocaleTimeString();
     const timestamp = document.createElement('div');
     timestamp.textContent = timeString;
     timestamp.className = 'screenshot-timestamp';
     
-    // 創建容器
+    // Create container for the image and timestamp
     const container = document.createElement('div');
     container.className = 'screenshot-item';
     container.appendChild(img);
     container.appendChild(timestamp);
     
-    // 添加到截圖列表
+    // Add to screenshot list
     screenshotList.appendChild(container);
     
-    // 滾動到新添加的截圖
+    // Scroll to the newly added screenshot
     setTimeout(() => {
         screenshotList.scrollLeft = screenshotList.scrollWidth;
     }, 100);
@@ -482,7 +389,6 @@ function initializeSystemResources() {
         { id: 'cpu-usage', label: 'CPU Usage' },
         { id: 'cpu-temperature', label: 'CPU Temp' },
         { id: 'gpu-usage', label: 'GPU Usage' },
-        { id: 'gpu-temperature', label: 'GPU Temp' },
         { id: 'ram-usage', label: 'RAM Usage' },
         { id: 'swap-usage', label: 'Swap Usage' }
     ];
@@ -535,10 +441,11 @@ function updateSystemResources(data) {
         return;
     }
     
-    console.log("收到的完整数据:", data);
+    console.log("收到的完整數据:", data);
     
     // 更新电池电量
     if (data.percentage !== undefined) {
+        console.log("更新電池百分比:", data.percentage);
         updateBattery(data.percentage);
     }
     
@@ -546,12 +453,20 @@ function updateSystemResources(data) {
     if (data.voltage !== undefined) {
         updateBatteryVoltage(data.voltage);
     }
-
+ // 更新 CPU 資源 - 注意這裡的修改
+ if (data.cpu) {
+    if (data.cpu.temperature !== undefined) {
+        updateProgressBar('cpu-temperature', data.cpu.temperature);
+    }
+    if (data.cpu.usage !== undefined) {
+        updateProgressBar('cpu-usage', data.cpu.usage);
+    }
+}
 
     /*
     // Update progress bars with real data
-    if (data.cpuUsage !== undefined) updateProgressBar('cpu-usage', data.cpuUsage);
-    if (data.cpuTemp !== undefined) updateProgressBar('cpu-temperature', data.cpuTemp);
+    
+    
     if (data.gpuUsage !== undefined) updateProgressBar('gpu-usage', data.gpuUsage);
     if (data.gpuTemp !== undefined) updateProgressBar('gpu-temperature', data.gpuTemp);
     if (data.ramUsage !== undefined) updateProgressBar('ram-usage', data.ramUsage);
@@ -578,8 +493,15 @@ function updateProgressBar(id, value) {
         progressContainer.appendChild(percentageLabel);
     }
     
-    // Update percentage label
-    percentageLabel.textContent = `${Math.round(value)}%`;
+    // 根據 ID 判斷是否為 CPU 溫度
+    if (id === 'cpu-temperature') {
+        // 溫度使用度數單位
+        percentageLabel.textContent = `${Math.round(value)}°C`;
+    } else {
+        // 其他進度條使用百分比單位
+        percentageLabel.textContent = `${Math.round(value)}%`;
+    }
+    
     percentageLabel.style.marginLeft = '10px';
     percentageLabel.style.fontSize = '14px';
 
@@ -601,7 +523,10 @@ function updateBattery(level) {
     const batteryLevel = document.getElementById("battery-level");
     const batteryPercentage = document.getElementById("battery-percentage");
     
-    if (!batteryLevel || !batteryPercentage) return;
+    if (!batteryLevel || !batteryPercentage) {
+        console.error("找不到電池 DOM 元素");
+        return;
+    }
     
     // Update battery level
     batteryLevel.style.width = `${level}%`;
@@ -695,9 +620,46 @@ window.addEventListener('load', function() {
     if (captureButton) captureButton.addEventListener('click', captureScreenshot);
     
     // Initialize direction controls
+    // 20250403 Adding Direction Button Logic
     Object.entries(directionButtons).forEach(([direction, button]) => {
         if (button) {
-            button.addEventListener('click', () => handleDirection(direction));
+            button.addEventListener('mousedown', () => handleDirection(direction));
+            button.addEventListener('mouseup', () => {
+                this.window.robotSocket.send(JSON.stringify({ type: "command", action: "stop" }));
+            })
+
+            button.addEventListener('touchstart', () => handleDirection(direction));
+            button.addEventListener('touchend', () => {
+                window.robotSocket.send(JSON.stringify({ type: "command", action: "stop" }));
+            });
+        }
+    });
+
+    // Initialize Keyboard Direction Control For Robot Moving
+    const KeyToAction = {
+        ArrowUp: "move_forward",
+        ArrowDown: "move_back",
+        ArrowLeft: "move_left",
+        ArrowRight: "move_right"
+    }
+    
+    const pressedKeys = new Set();
+
+    this.window.addEventListener("keydown", function(event) {
+        const action = KeyToAction[event.key];
+        if (action && !pressedKeys.has(event.key)){
+            pressedKeys.add(event.key);
+            console.log(`Key down: ${event.key} → ${action}`);
+            window.robotSocket.send(JSON.stringify({ type: "command", action }));
+        }
+    });
+
+    this.window.addEventListener("keyup", function(event) {
+        const action = KeyToAction[event.key];
+        if (action) {
+            pressedKeys.delete(event.key);
+            console.log(`Key up: ${event.key} → stop`);
+            window.robotSocket.send(JSON.stringify({ type: "command", action: "stop" }));
         }
     });
     

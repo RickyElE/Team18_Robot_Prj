@@ -581,14 +581,7 @@ button:disabled {
 .scroll-right-btn {
     right: 10px;
 }
-/*右邊區塊*/
-.right-section {
-    grid-column: 3;/* container 的第三個子元素，占20% */
-    justify-content: flex-start;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-}
+
 /* 電池外框 */
 .battery-container {
     display: flex;
@@ -644,15 +637,33 @@ button:disabled {
     color: white;
     font-size: 14px;
 }
-#battery-voltage{
+#battery-voltage {
     color: white;
-    font-size:14px;
+    font-size: 14px;
+    margin-left: 5px;
 }
 
+/*右邊區塊*/
+.right-section {
+    grid-column: 3;/* container 的第三個子元素，占20% */
+    justify-content: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* progress-section 樣式 */
+.progress-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* 減少進度條之間的距離 */
+    margin-top: 0; /* 確保頂部沒有邊距 */
+}
 /* 進度條 */
 .progress-container {
     display: flex;
     flex-direction: column;
+    margin-bottom: 5px; /* 減少底部邊距 */
 }
 
 .progress-container label {
@@ -660,6 +671,13 @@ button:disabled {
     font-size: 14px;
     margin-bottom: 1.5px;
 }
+
+/* 組織電池和系統資源區域 */
+.battery-and-resources {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* 減少區塊間距 */
+}   
 
 progress {
     width: 70%;
@@ -682,6 +700,62 @@ progress::-webkit-progress-value {
 
 progress::-moz-progress-bar {
     background-color: #4CAF50;
+}
+.gauges-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 2px; /* 減少容器內元素間距 */
+    max-width: 65%; /* 限制最大寬度 */
+    
+}
+
+.gauge {
+    background-color: #2a2a2a;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    margin: 0 auto; /* 居中顯示 */
+}
+
+.gauge-title {
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.gauge-svg {
+    width: 80%;
+    height: auto;
+}
+
+.gauge-background {
+    fill: none;
+    stroke: #3a3a3a;
+    stroke-width: 15;
+}
+
+.gauge-value {
+    fill: none;
+    stroke: #4CAF50;
+    stroke-width: 15;
+    transition: stroke-dasharray 0.3s ease;
+    
+}
+
+.gauge-text {
+    fill: #ffffff;
+    font-size: 18px;
+    text-anchor: middle;
+    font-weight: 500;
+}
+
+.gauge-pointer {
+    fill: #4CAF50;
+    transform-origin: center;
+    transition: transform 0.3s ease;
 }
 
 button {
@@ -715,58 +789,3 @@ button:disabled {
     box-shadow: none;
 }
 
-.gauges-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.gauge {
-    flex:1;
-    background-color: #2a2a2a;
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    
-}
-
-.gauge-title {
-    color: #ffffff;
-    margin-bottom: 15px;
-    font-size: 16px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-}
-
-.gauge-svg {
-    width: 80%;
-    height: auto;
-}
-
-.gauge-background {
-    fill: none;
-    stroke: #3a3a3a;
-    stroke-width: 15;
-}
-
-.gauge-value {
-    fill: none;
-    stroke: #4CAF50;
-    stroke-width: 15;
-    transition: stroke-dasharray 0.3s ease;
-    
-}
-
-.gauge-text {
-    fill: #ffffff;
-    font-size: 25px;
-    text-anchor: middle;
-    font-weight: 500;
-}
-
-.gauge-pointer {
-    fill: #4CAF50;
-    transform-origin: center;
-    transition: transform 0.3s ease;
-}

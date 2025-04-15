@@ -123,55 +123,47 @@
 </div>
         </div>
 
-  <div class="right-section">
-            <div class="battery-container">
-                <div class="battery">
-                    <div class="battery-level" id="battery-level"></div>
-                </div>
-             <p id="battery-percentage">Percentage</p>
-             <p id="battery-voltage">Voltage</p>
+  <!-- 修改右側區塊結構，將電池和進度條區域包在一個共同容器內 -->
+<div class="right-section">
+    <div class="battery-and-resources">
+        <div class="battery-container">
+            <div class="battery">
+                <div class="battery-level" id="battery-level"></div>
             </div>
+            <p id="battery-percentage">Battery</p>
+            <p id="battery-voltage">V:</p>
+        </div>
         
-    <div class="progress-container">
-        <label>CPU Temperature</label>
-        <progress id="cpu-temperature" value="45" max="100"></progress>
-    </div>
+        <div class="progress-section">
+            <div class="progress-container">
+                <label>CPU Temperature</label>
+                <progress id="cpu-temperature" value="45" max="100"></progress>
+            </div>
 
-    <div class="progress-container">
-        <label>GPU Temperature</label>
-        <progress id="gpu-temperature" value="40" max="100"></progress>
-    </div>
-    <div class="progress-container">
-        <label>CPU Usage</label>
-        <progress id="cpu-usage" value="30" max="100"></progress>
-    </div>
+            <div class="progress-container">
+                <label>CPU Usage</label>
+                <progress id="cpu-usage" value="30" max="100"></progress>
+            </div>
 
-    <div class="progress-container">
-        <label>GPU Usage</label>
-        <progress id="gpu-usage" value="20" max="100"></progress>
-    </div>
+            <div class="progress-container">
+                <label>GPU Usage</label>
+                <progress id="gpu-usage" value="20" max="100"></progress>
+            </div>
 
-    <div class="progress-container">
-        <label>RAM-info</label>
-        <progress id="ram-usage" value="50" max="100"></progress>
-    </div>
+            <div class="progress-container">
+                <label>RAM-info</label>
+                <progress id="ram-usage" value="50" max="100"></progress>
+            </div>
 
-    <div class="progress-container">
-        <label>Swap-info</label>
-        <progress id="swap-usage" value="10" max="100"></progress>
+            <div class="progress-container">
+                <label>Swap-info</label>
+                <progress id="swap-usage" value="10" max="100"></progress>
+            </div>
+        </div>
     </div>
             
             <!-- Gauges -->
             <div class="gauges-container">
-                <!-- Speed速度 Gauge -->
-                <div class="gauge">
-                    <div class="gauge-title">Speed</div>
-                    <svg class="gauge-svg" viewBox="0 0 120 120">
-                        <circle class="gauge-background" cx="60" cy="60" r="50" stroke-dasharray="157" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
-                        <polygon id="speed-pointer" class="gauge-pointer" points="60,20 56,60 64,60" transform="rotate(0 60 60)"/>
-                        <text id="speed-text" class="gauge-text" x="60" y="75">0 km/h</text>
-                    </svg>
-                </div>
                 <!-- Distance距離 Gauge -->
                 <div class="gauge">
                     <div class="gauge-title">Distance</div>
@@ -189,4 +181,4 @@
 
     <script src="app.js"></script>
 </body>
-</html>
+</html> 
