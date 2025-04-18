@@ -5,104 +5,78 @@
 #include <iostream>
 
 
-void initial_roboarm(SCSCL &sc){
-    u8 ids[2] = {0, 1};             // 舵机ID分别为0和1
-    u16 positions[2] = {380, 111};     // ID0移动到380，ID1移动到111
-    u16 times[2] = {0, 0};            // 两个舵机的运动时间都为0（立即达到目标位置）
-    u16 speeds[2] = {100, 100};       // 两个舵机的运动速度都为100
-    
+
+// 保存关节实时位置的轻量级结构体
+struct ArmState {
+    int basePos;   // ID0：底座/大臂
+    int headPos;   // ID1：末端/头
+};
+
+// ---------- 1. 把“读取当前位置”封装成单独函数 ----------
+inline void UpdateArmState(SCSCL &sc, ArmState &st)
+{
+    st.basePos = sc.ReadPos(0);
+    st.headPos = sc.ReadPos(1);
+}
+
+
+// ---------- 2. 初始化 ----------
+void initial_roboarm(SCSCL &sc, ArmState &st)
+{
+    u8  ids[2]       = {0, 1};
+    u16 positions[2] = {380, 111};
+    u16 times[2]     = {0,   0};
+    u16 speeds[2]    = {300, 300};
+
     sc.SyncWritePos(ids, 2, positions, times, speeds);
+    UpdateArmState(sc, st);          // 调完立即刷新一次缓存
 }
 
 
+// ---------- 3. 直线前后移动（保持两关节相对位移不变） ----------
+void MoveForward(SCSCL &sc, ArmState &st, int delta)
+{
+    int constantDelta = st.basePos - st.headPos;
 
+    int targetBase = st.basePos + delta;
+    int targetHead = targetBase - constantDelta;
 
-double update_math_equ(SCSCL &sc){ 
-    int standard_pos1 = 111 ;
-    int current_pos1 ;
-    current_pos1 = sc.ReadPos(1);
-    double const_theta1 = (current_pos1 - standard_pos1)/3.33 ;
-    return const_theta1;
-}
-
-
-std::pair<int,int> angleCalculate(SCSCL &sc,int delta_pos0){
-    double const_theta1 = update_math_equ(sc);//先调用update_math_equ计算出theta1与水平正方向的偏转角const_theta1
-
-
-    int current_pos0 = sc.ReadPos(0);//初始化的话应该会读到pos0为380
-    int current_pos1 = sc.ReadPos(1);//同上，111
-    int target_pos0 ;
-    int target_pos1 ;
-
-
-    double current_theta0 ; //单位：度
-    double current_theta1 ; //单位：度
-    double target_theta0 ; //单位：度
-    double target_theta1 ; //单位：度
-
-
-
-    current_theta0 = (current_pos0 - 380.0) / 3.36 + 56 ;//单位：度
-    current_theta1 = (current_pos1 - 111.0 ) / 3.33 + 56 ;//单位：度
-    
-
-    double delta_theta0 = delta_pos0/3.36 ;//单位：度
-
-    target_theta0 = current_theta0 + delta_theta0 ;//单位：度
-
-    target_theta1 = const_theta1 + target_theta0 ;//由于target_theta0是0号杆与水平线的夹角，根据平行线内错角相同原理，加上之前计算出的theta1与水平正方向的偏转角const_theta1，即可算出target_theta1。单位：度
-
-    target_pos0 = (target_theta0 - 56) * 3.36 + 380;
-    target_pos1 = (target_theta1 - 56) * 3.33 + 111;
-    
-    return {target_pos0,target_pos1};
-}
-
-void MoveForward(SCSCL &sc){
-    auto pp = angleCalculate(sc,50);
-    int target_pos0 = pp.first;
-    int target_pos1 = pp.second;
-
-    u8 ids[2]         = { 0, 1 };
-    u16 positions[2]  = { (u16)target_pos0, (u16)target_pos1 };
-    u16 times[2] = { (u16)0, (u16)0 };
-    u16 speeds[2] = { (u16)300,(u16)300};
+    u8  ids[2]       = {0, 1};
+    u16 positions[2] = {(u16)targetBase, (u16)targetHead};
+    u16 times[2]     = {0, 0};
+    u16 speeds[2]    = {300, 500};
     sc.SyncWritePos(ids, 2, positions, times, speeds);
-}
 
-void MoveBackward(SCSCL &sc){
-    auto pp = angleCalculate(sc,-50);
-    int target_pos0 = pp.first;
-    int target_pos1 = pp.second;
-
-    u8 ids[2]         = { 0, 1 };
-    u16 positions[2]  = { (u16)target_pos0, (u16)target_pos1 };
-    u16 times[2] = { (u16)0, (u16)0 };
-    u16 speeds[2] = { (u16)300,(u16)300};
-    sc.SyncWritePos(ids, 2, positions, times, speeds);
+    UpdateArmState(sc, st);          // ⇒ 调完记得刷新
 }
 
 
-
-void HeadUp(SCSCL &sc,int speed){
-    int delta_pos1 = 50;
-    int current_pos1 = sc.ReadPos(1);
-    int target_pos1 = current_pos1 + delta_pos1;
-    sc.WritePos(1,(u16)target_pos1,0,speed);
-}
-
-void HeadDown(SCSCL &sc,int speed){
-    int delta_pos1 = -50;
-    int current_pos1 = sc.ReadPos(1);
-    int target_pos1 = current_pos1 + delta_pos1;
-    sc.WritePos(1,(u16)target_pos1,0,speed);
+void MoveBackward(SCSCL &sc, ArmState &st, int delta)
+{
+    MoveForward(sc, st, -delta);     
 }
 
 
+// ---------- 4. 抬头 / 低头 ----------
+void HeadUp(SCSCL &sc, ArmState &st, int delta, int speed)
+{
+    int target = st.headPos + delta;
+    sc.WritePos(1, (u16)target, 0, speed);
 
+    UpdateArmState(sc, st);
+}
 
+void HeadDown(SCSCL &sc, ArmState &st, int delta, int speed)
+{
+    int target = st.headPos - delta; // ↓ 应该是减
+    sc.WritePos(1, (u16)target, 0, speed);
 
+    UpdateArmState(sc, st);
+}
 
-
-
+// ---------- 5. 调试打印，随时查看缓存 ----------
+void PrintState(const ArmState &st, const char *tag = "")
+{
+    printf("%s  base=%d  head=%d  Δ=%d\n",
+           tag, st.basePos, st.headPos, st.basePos - st.headPos);
+}
