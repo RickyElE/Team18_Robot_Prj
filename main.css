@@ -117,6 +117,23 @@ body {
     align-items: start;
 }
 
+.camera-placeholder {
+    width: 100%;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+#camera-stream{
+    display : none;
+}
+
+#camera-stream[src]{
+    display : block;
+}
+
 .left-section,
 .middle-section,
 .right-section {
@@ -270,8 +287,20 @@ body {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     width: 100%;
+    justify-content: center; /* 水平居中 */
+    align-items: center;     /* 垂直居中 */
 }
-
+/* 強制所有機械臂按鈕使用相同的懸停樣式 */
+#arm-rotate-left-btn:hover,
+#arm-rotate-right-btn:hover,
+#arm-cut-btn:hover,
+#arm-release-btn:hover,
+#arm-up-btn:hover,
+#arm-down-btn:hover,
+#arm-forward-btn:hover,
+#arm-backward-btn:hover {
+    background-color: #DDD0C8 !important;
+}
 .arm-btn {
     width: 100%;
     height: 50px;
@@ -283,29 +312,13 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s;
-    align-items: center;
+    justify-content: center; /* 水平居中 */
+    align-items: center;     /* 垂直居中 */
+    margin-bottom: 5px;  
 }
 
-/* 移動控制按鈕樣式 */
-#arm-up-btn:hover,
-#arm-down-btn:hover {
-    background-color: #DDD0C8;
-}
 
-#arm-forward-btn:hover,
-#arm-backward-btn:hover {
-    background-color:#DDD0C8;
-}
 
-/* 夾子控制按鈕樣式 */
-#arm-cut-btn:hover{
-    background-color:#B0C4DE;
-}
-
-#arm-rotate-left-btn:hover,
-#arm-rotate-right-btn:hover {
-    background-color: #B0C4DE;
-}
 
 /* Middle section container */
 .middle-section {
@@ -534,13 +547,13 @@ button:disabled {
     font-size: 10px;
 }
 
-/* Webkit瀏覽器的滾動條樣式 */
+
 #screenshot-list::-webkit-scrollbar {
-    height: 8px; /* 滾動條高度 */
+    height: 8px; 
 }
 
 #screenshot-list::-webkit-scrollbar-thumb {
-    background-color: rgba(76, 175, 80, 0.5); /* 半透明綠色 */
+    background-color: rgba(76, 175, 80, 0.5); 
     border-radius: 4px;
 }
 
@@ -727,7 +740,7 @@ progress::-moz-progress-bar {
 }
 
 .gauge-svg {
-    width: 80%;
+    width: 100%;
     height: auto;
 }
 
