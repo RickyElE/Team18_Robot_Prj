@@ -1,0 +1,8 @@
+CompileFlags:
+  Add: 
+      -I
+      -"/home/Team18_Pi/Team18_prj/Zhihong/Team18_Robot_Prj/include"
+      -I
+      -"/home/Team18_Pi/Team18_prj/Zhihong/Team18_Robot_Prj/include/BatteryMsg"
+      -I
+      -"/home/Team18_Pi/Team18_prj/Zhihong/Team18_Robot_Prj/include/driver"
