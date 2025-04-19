@@ -16,11 +16,14 @@ int main(int /*argc*/, char ** /*argv*/)
 
     // ------- 上电 & 复位 -------
     sc.EnableTorque(0, 1);
+    usleep(754 * 1000); 
     sc.EnableTorque(1, 1);
     usleep(200 * 1000);             // 给舵机一点点时间再发指令
     initial_roboarm(sc, st);        // 复位并刷新状态
     usleep(754 * 1000);             // 等动作到位
-
+    UpdateArmState(sc,st);
+    usleep(754 * 1000);
+    std::cout<<"初始化完成，进入主循环"<<std::endl;
     // ------- 主循环 -------
     while (true) {
         char key = getch();         // 阻塞式读取；若想非阻塞需自行改
@@ -37,6 +40,8 @@ int main(int /*argc*/, char ** /*argv*/)
 
             case 'p':
                 initial_roboarm(sc, st);
+                usleep(1000*1000);
+                UpdateArmState(sc,st);
                 PrintState(st, "HOME");
                 break;
 
