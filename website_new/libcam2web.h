@@ -1,9 +1,13 @@
 #ifndef LIBCAM2WEB_H
 #define LIBCAM2WEB_H
 
-#include "../libcam2opencv.h"
-#include "external/simple_http_server.h"
-#include <opencv2/imgcodecs.hpp>
+// #include "libcam2opencv.h"
+#include "libcam2opencv.h"
+#include <memory>
+#include <string>
+#include <libcamera/libcamera/camera_manager.h>
+#include "simple_http_server.h"
+#include <opencv4/opencv2/imgcodecs.hpp>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -11,7 +15,7 @@
 
 class LibCam2Web {
 public:
-    LibCam2Web(int port = 8080);
+    LibCam2Web(int port = 8081);
     ~LibCam2Web();  // 添加析構函數聲明
     
     // 啟動攝像頭和網頁服務器

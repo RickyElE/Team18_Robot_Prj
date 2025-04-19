@@ -14,7 +14,7 @@
 
 class SimpleHttpServer {
 public:
-    SimpleHttpServer(int port = 8080);
+    SimpleHttpServer(int port = 8081);
     ~SimpleHttpServer();
 
     // 啟動服務器
@@ -29,10 +29,13 @@ public:
 private:
     int port_;
     int server_fd_;
+    std::string readHtmlFile(const std::string& path);
+    std::string getHtmlPage();
     std::atomic<bool> running_;
     std::thread server_thread_;
     std::mutex mutex_;
     std::function<std::vector<uint8_t>()> image_provider_;
+    
     
     // 處理客戶端連接
     void clientHandler(int client_fd);
@@ -46,8 +49,6 @@ private:
     // 發送 MJPEG 流
     void sendMjpegStream(int client_fd);
     
-    // 獲取 HTML 頁面
-    std::string getHtmlPage();
 };
 
 #endif // SIMPLE_HTTP_SERVER_H

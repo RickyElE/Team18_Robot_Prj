@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstring>
+#include <fstream>
 
 SimpleHttpServer::SimpleHttpServer(int port) 
     : port_(port), server_fd_(-1), running_(false) {
@@ -141,16 +142,74 @@ void SimpleHttpServer::clientHandler(int client_fd) {
         }
     }
     
-    // 根據路徑處理請求
-    if (path == "/" || path.empty()) {
-        // 返回 HTML 頁面
-        sendHttpResponse(client_fd, 200, "text/html", getHtmlPage());
+    // 添加 CORS 頭
+    std::string cors_headers = 
+        "Access-Control-Allow-Origin: *\r\n"
+        "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+        "Access-Control-Allow-Headers: Content-Type\r\n";
+
+    // 添加新的 /capture 路由
+    if (path == "/capture") {
+        std::vector<uint8_t> jpeg_data;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (image_provider_) {
+                jpeg_data = image_provider_();
+            }
+        }
+        
+        if (!jpeg_data.empty()) {
+            std::ostringstream response;
+            response << "HTTP/1.1 200 OK\r\n";
+            response << cors_headers;  // 添加 CORS 頭
+            response << "Content-Type: image/jpeg\r\n";
+            response << "Content-Length: " << jpeg_data.size() << "\r\n";
+            response << "\r\n";
+            
+            write(client_fd, response.str().c_str(), response.str().length());
+            write(client_fd, jpeg_data.data(), jpeg_data.size());
+        } else {
+            // 如果沒有可用的幀
+            std::string not_found_body = "No frame available";
+            std::ostringstream response;
+            response << "HTTP/1.1 404 Not Found\r\n";
+            response << cors_headers;  // 添加 CORS 頭
+            response << "Content-Type: text/plain\r\n";
+            response << "Content-Length: " << not_found_body.length() << "\r\n";
+            response << "\r\n";
+            response << not_found_body;
+            
+            write(client_fd, response.str().c_str(), response.str().length());
+        }
+    } 
+    // 原有的路由保持不變
+    else if (path == "/" || path.empty() || path == "/website.html") {
+        std::string html = readHtmlFile("/home/Team18_Pi/website/resi_website/website.html");
+        
+        std::ostringstream response;
+        response << "HTTP/1.1 200 OK\r\n";
+        response << cors_headers;  // 添加 CORS 頭
+        response << "Content-Type: text/html\r\n";
+        response << "Content-Length: " << html.length() << "\r\n";
+        response << "\r\n";
+        response << html;
+        
+        write(client_fd, response.str().c_str(), response.str().length());
     } else if (path == "/stream") {
         // 發送 MJPEG 流
         sendMjpegStream(client_fd);
     } else {
         // 返回 404
-        sendHttpResponse(client_fd, 404, "text/plain", "Not Found");
+        std::string not_found_body = "Not Found";
+        std::ostringstream response;
+        response << "HTTP/1.1 404 Not Found\r\n";
+        response << cors_headers;  // 添加 CORS 頭
+        response << "Content-Type: text/plain\r\n";
+        response << "Content-Length: " << not_found_body.length() << "\r\n";
+        response << "\r\n";
+        response << not_found_body;
+        
+        write(client_fd, response.str().c_str(), response.str().length());
     }
     
     close(client_fd);
@@ -183,6 +242,7 @@ void SimpleHttpServer::sendMjpegStream(int client_fd) {
                          "Pragma: no-cache\r\n"
                          "Expires: 0\r\n"
                          "Connection: close\r\n"
+                         "Access-Control-Allow-Origin: *\r\n"
                          "\r\n";
     
     write(client_fd, header.c_str(), header.length());
@@ -214,74 +274,32 @@ void SimpleHttpServer::sendMjpegStream(int client_fd) {
     }
 }
 
-std::string SimpleHttpServer::getHtmlPage() {
-    return R"(
+// 添加這個函數來讀取 HTML 檔案
+std::string SimpleHttpServer::readHtmlFile(const std::string& path) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        std::cerr << "無法打開 HTML 文件: " << path << std::endl;
+        // 直接返回一個簡單的備用 HTML，而不是調用 getHtmlPage()
+        return R"(
 <!DOCTYPE html>
 <html>
 <head>
     <title>LibCam2Web</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #333;
-        }
-        img {
-            max-width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .brightness-indicator {
-            width: 100%;
-            height: 30px;
-            margin-top: 20px;
-            background: linear-gradient(to right, #000000, #ffffff);
-            border-radius: 5px;
-            position: relative;
-        }
-        .indicator {
-            position: absolute;
-            top: -10px;
-            width: 10px;
-            height: 50px;
-            background-color: red;
-            transform: translateX(-50%);
-        }
+        body { font-family: Arial; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>LibCam2Web</h1>
-        <img src="/stream" alt="攝像頭畫面">
-        <div class="brightness-indicator">
-            <div class="indicator" id="brightness-indicator" style="left: 50%;"></div>
-        </div>
-    </div>
-
-    <script>
-        function updateBrightnessIndicator() {
-            const randomBrightness = Math.random() * 100;
-            document.getElementById('brightness-indicator').style.left = randomBrightness + '%';
-            
-            setTimeout(updateBrightnessIndicator, 500);
-        }
-        
-        updateBrightnessIndicator();
-    </script>
+    <h1>LibCam2Web</h1>
+    <p></p>
+    <img src="/stream" alt="攝像頭畫面">
 </body>
 </html>
-    )";
+        )";
+    }
+    
+    std::string content((std::istreambuf_iterator<char>(file)),
+                       std::istreambuf_iterator<char>());
+    return content;
 }
+

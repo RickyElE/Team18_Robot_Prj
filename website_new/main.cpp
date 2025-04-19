@@ -1,83 +1,58 @@
-#include "libcam2web.h"
+#include "main.h"
 #include <iostream>
-#include <string>
 #include <csignal>
+#include <atomic>
+#include <thread>
+#include <chrono>
 
-// 全局服務器實例用於信號處理
-LibCam2Web* server = nullptr;
+// 全局變量
+std::atomic_bool keep_running = true;
 
-// 信號處理程序以優雅地關閉
-void signalHandler(int signum) {
-    std::cout << "接收到中斷信號 (" << signum << ")。\n";
-    
-    // 清理並關閉服務器
-    if (server != nullptr) {
-        server->stop();
-    }
-    
-    exit(signum);
+// 信號處理函數
+void signal_handler(int signum) {
+    std::cout << "\n[INFO] 接收到中斷信號 (" << signum << ")，退出中..." << std::endl;
+    keep_running = false;
 }
 
-// 主程序
 int main(int argc, char* argv[]) {
-    // 註冊信號處理程序
-    signal(SIGINT, signalHandler);
+    // 註冊信號處理
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
+
+    // 預設設定
+    int port = 8081;
     
-    // 解析命令行參數
-    int port = 8080;  // 默認端口
-    Libcam2OpenCVSettings settings;
-    
-    for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        
-        if (arg == "--port" && i + 1 < argc) {
-            port = std::stoi(argv[++i]);
-        } else if (arg == "--width" && i + 1 < argc) {
-            settings.width = std::stoi(argv[++i]);
-        } else if (arg == "--height" && i + 1 < argc) {
-            settings.height = std::stoi(argv[++i]);
-        } else if (arg == "--framerate" && i + 1 < argc) {
-            settings.framerate = std::stoi(argv[++i]);
-        } else if (arg == "--brightness" && i + 1 < argc) {
-            settings.brightness = std::stof(argv[++i]);
-        } else if (arg == "--contrast" && i + 1 < argc) {
-            settings.contrast = std::stof(argv[++i]);
-        } else if (arg == "--help") {
-            std::cout << "使用方法: " << argv[0] << " [選項]\n"
-                     << "選項:\n"
-                     << "  --port PORT          網頁服務器端口 (默認: 8080)\n"
-                     << "  --width WIDTH        攝像頭寬度 (默認: 自動)\n"
-                     << "  --height HEIGHT      攝像頭高度 (默認: 自動)\n"
-                     << "  --framerate FPS      攝像頭幀率 (默認: 自動)\n"
-                     << "  --brightness VALUE   攝像頭亮度 (-1.0 到 1.0, 默認: 0.0)\n"
-                     << "  --contrast VALUE     攝像頭對比度 (0.0 到 2.0, 默認: 1.0)\n"
-                     << "  --help               顯示此幫助消息\n";
-            return 0;
-        }
-    }
-    
-    // 創建並啟動服務器
-    server = new LibCam2Web(port);
-    
+
     try {
-        std::cout << "啟動攝像頭，設置為:\n"
-                 << "  寬度: " << (settings.width ? std::to_string(settings.width) : "自動") << "\n"
-                 << "  高度: " << (settings.height ? std::to_string(settings.height) : "自動") << "\n"
-                 << "  幀率: " << (settings.framerate ? std::to_string(settings.framerate) : "自動") << "\n"
-                 << "  亮度: " << settings.brightness << "\n"
-                 << "  對比度: " << settings.contrast << "\n";
-        
-        server->start(settings);
-        
-        // 等待用戶按Enter退出
-        std::cout << "按Enter停止服務器..." << std::endl;
-        std::cin.get();
-        
-        server->stop();
+        // 初始化 WebSocket 服務器
+        std::cout << "初始化服務器..." << std::endl;
+        WebsiteServer website_server;
+
+        // 設置攝像頭參數
+        // website_server.setCameraSettings(port, settings);
+
+        // 啟動所有服務
+        if (!website_server.start()) {
+            std::cerr << "服務器無法啟動！" << std::endl;
+            return 1;
+        }
+
+        // 主循環，保持程序運行直到收到信號
+        std::cout << "所有服務已啟動。按 Ctrl+C 停止..." << std::endl;
+        while (keep_running) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
+        // 程序即將結束，停止服務
+        std::cout << "正在停止服務..." << std::endl;
+        website_server.stop();
+
+        std::cout << "所有服務已停止。" << std::endl;
+
     } catch (const std::exception& e) {
         std::cerr << "錯誤: " << e.what() << std::endl;
+        return 1;
     }
-    
-    delete server;
+
     return 0;
 }
