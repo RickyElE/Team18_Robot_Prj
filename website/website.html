@@ -44,19 +44,23 @@
     </div>
     
     <div class="container">
-        <!-- middle-Section - 現在放置方向與機械臂控制 (原本的 left-section 內容) -->
+        <!-- middle-Section -->
         <div class="middle-section">
-            <!-- 一個容器 camera-top-row 來並排鏡頭畫面和上下移動按鈕 -->
+            <!-- camera movement btn-->
             <div class="camera-top-row">
               <div id="camera-container">
-                <video id="camera-stream" autoplay playsinline></video>
+                <div id="camera-placeholder" class="camera-placeholder">
+                    <p>turn on the camera</p>
+                </div>
+                <img id="camera-stream" src = 'http://192.168.1.100:8081/stream' alt="Camera Stream" style="display: none; transform: rotate(180deg);" crossorigin="anonymous">
+                
               </div>
              <div class="camera-btn-section">
               <div class="camera-move-controls">
                 <button id="camera-up-btn" class="camera-btn">⬆</button>
                 <button id="camera-down-btn" class="camera-btn">⬇</button>
               </div>
-              <!-- 三顆控制按鈕並排 -->
+              <!-- camera start btn-->
             <div class="camera-controls">
                 <button id="start-btn">Start camera</button>
                 <button id="stop-btn" disabled>Stop camera</button>
@@ -65,15 +69,15 @@
              </div>
         
             </div>
-            <!-- 截圖區塊 -->
+            <!-- screenshot-->
             <div class="screenshot-container">
-              <div id="screenshot-list"></div>
+              <div id="screenshot-list" style="display: flex; overflow-x: auto;"></div>
             </div>
         </div>
           
-        <!-- left-Section - 現在放置原本的 middle-section 內容 -->
+        <!-- left-Section -->
         <div class="left-section">
-            <!--方向控制-->
+        <!--direction control-->
             <div class="direction-controls">
                 <img src="img/directions.png" alt="direction-img" width="50">
                 <div class="direction-buttons">
@@ -83,94 +87,80 @@
                     <button id="back-btn" class="direction-btn">B</button>
                 </div>   
             </div>
-            <!--機械臂控制 -->
-            <!-- 書籤式機械臂控制區塊 -->
-<div class="mechanical-arm-controls">
-    <div class="arm-header">
-        <img src="img/robot-arm_8596335.png" alt="robotarm-img" width="50">
-        <h3>Mechanical Arm</h3>
-    </div>
+            <!--Arm control-->
+            <div class="mechanical-arm-controls">
+                <div class="arm-header">
+                    <img src="img/robot-arm_8596335.png" alt="robotarm-img" width="50">
+                    <h3>Mechanical Arm</h3>
+                </div>
     
-    <!-- 書籤標籤列 -->
+    <!-- Bookmark column-->
     <div class="arm-tabs">
         <button class="arm-tab-btn active" data-tab="movement">Movement</button>
         <button class="arm-tab-btn" data-tab="gripper">Clamp</button>
+    
+    
     </div>
     
-    <!-- 書籤內容 - 移動控制頁面 -->
+     <!-- bookmark1:Movement -->
     <div class="arm-tab-content active" id="movement-tab">
         <div class="arm-buttons">
-            <!-- 上下控制 -->
-            <button id="arm-up-btn" class="arm-btn">Up</button>
-            <button id="arm-down-btn" class="arm-btn">Down</button>
-            
-            <!-- 前後控制 -->
+            <button id="arm-up-btn" class="arm-btn">Head Up</button>
+            <button id="arm-down-btn" class="arm-btn">Head Down</button>
             <button id="arm-forward-btn" class="arm-btn">Forward</button>
             <button id="arm-backward-btn" class="arm-btn">Backward</button>
         </div>
     </div>
     
-    <!-- 書籤內容 - 夾子控制頁面 -->
+    <!-- bookmark2:Clamp -->
     <div class="arm-tab-content" id="gripper-tab">
         <div class="arm-buttons">
-            <!-- 旋轉控制 -->
             <button id="arm-rotate-left-btn" class="arm-btn">Rotate Left</button>
-            <button id="arm-rotate-right-btn" class="arm-btn">Rotate right</button>
-            <!-- 夾取和釋放控制 -->
+            <button id="arm-rotate-right-btn" class="arm-btn">Rotate Right</button>
             <button id="arm-cut-btn" class="arm-btn">Cut</button>
+            <button id="arm-release-btn" class="arm-btn">Release</button>
         </div>
     </div>
+
 </div>
-        </div>
+</div>
 
-  <div class="right-section">
-            <div class="battery-container">
-                <div class="battery">
-                    <div class="battery-level" id="battery-level"></div>
-                </div>
-             <p id="battery-percentage">Battery</p>
+  <!-- 修改右側區塊結構，將電池和進度條區域包在一個共同容器內 -->
+<div class="right-section">
+    <div class="battery-and-resources">
+        <div class="battery-container">
+            <div class="battery">
+                <div class="battery-level" id="battery-level"></div>
             </div>
+            <p id="battery-percentage">Battery</p>
+            <p id="battery-voltage">V:</p>
+        </div>
         
-    <div class="progress-container">
-        <label>CPU Temperature</label>
-        <progress id="cpu-temperature" value="45" max="100"></progress>
-    </div>
+        <div class="progress-section">
+            <div class="progress-container">
+                <label>CPU Temperature</label>
+                <progress id="cpu-temperature" value="45" max="100"></progress>
+            </div>
 
-    <div class="progress-container">
-        <label>GPU Temperature</label>
-        <progress id="gpu-temperature" value="40" max="100"></progress>
-    </div>
-    <div class="progress-container">
-        <label>CPU Usage</label>
-        <progress id="cpu-usage" value="30" max="100"></progress>
-    </div>
+            <div class="progress-container">
+                <label>CPU Usage</label>
+                <progress id="cpu-usage" value="30" max="100"></progress>
+            </div>
 
-    <div class="progress-container">
-        <label>GPU Usage</label>
-        <progress id="gpu-usage" value="20" max="100"></progress>
-    </div>
+            <div class="progress-container">
+                <label>RAM-info</label>
+                <progress id="ram-usage" value="50" max="100"></progress>
+            </div>
 
-    <div class="progress-container">
-        <label>RAM-info</label>
-        <progress id="ram-usage" value="50" max="100"></progress>
-    </div>
-
-    <div class="progress-container">
-        <label>Swap-info</label>
-        <progress id="swap-usage" value="10" max="100"></progress>
+            <div class="progress-container">
+                <label>Swap-info</label>
+                <progress id="swap-usage" value="10" max="100"></progress>
+            </div>
+        </div>
     </div>
             
             <!-- Gauges -->
             <div class="gauges-container">
-                <!-- Speed速度 Gauge -->
-                <div class="gauge">
-                    <div class="gauge-title">Speed</div>
-                    <svg class="gauge-svg" viewBox="0 0 120 120">
-                        <circle class="gauge-background" cx="60" cy="60" r="50" stroke-dasharray="157" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
-                        <polygon id="speed-pointer" class="gauge-pointer" points="60,20 56,60 64,60" transform="rotate(0 60 60)"/>
-                        <text id="speed-text" class="gauge-text" x="60" y="75">0 km/h</text>
-                    </svg>
-                </div>
                 <!-- Distance距離 Gauge -->
                 <div class="gauge">
                     <div class="gauge-title">Distance</div>
@@ -188,4 +178,4 @@
 
     <script src="app.js"></script>
 </body>
-</html>
+</html> 
