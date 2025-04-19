@@ -1,3 +1,4 @@
+
 // Check login status
 if (!localStorage.getItem('isLoggedIn')) {
     window.location.href = 'login.html';
@@ -59,7 +60,10 @@ function setupWebSocketConnection() {
     console.log("正在建立 WebSocket 連線...");
     
     // 替換為您的樹莓派 IP 
-    const socket = new WebSocket('ws://192.168.1.86:8084');
+    const socket = new WebSocket('ws://192.168.1.100:8084');
+    socket.binaryType = "arraybuffer";
+
+    let isCameraRequested = false;
     
     // 連接打開時
     socket.onopen = function() {
@@ -70,36 +74,100 @@ function setupWebSocketConnection() {
     
     // 接收到消息時
     socket.onmessage = function(event) {
+        console.log('收到消息类型:', typeof event.data);
+        console.log('消息内容:', event.data);
+        console.log('是否为ArrayBuffer:', event.data instanceof ArrayBuffer);
+
         try {
+            // 首先检查是否是二进制数据
+            if (event.data instanceof ArrayBuffer) {
+                console.log('收到二进制图像数据');
+                
+                const blob = new Blob([event.data], { type: 'image/jpeg' });
+                const url = URL.createObjectURL(blob);
+                
+                const imgElement = document.getElementById('camera-stream');
+                if (imgElement) {
+                    imgElement.src = url;
+                    imgElement.style.display = 'block';
+                    
+                    imgElement.onload = () => {
+                        URL.revokeObjectURL(url);
+                    };
+                }
+                return; // 阻止继续执行
+            }
+    
+
             // 解析從伺服器收到的 JSON 數據
             const data = JSON.parse(event.data);
             console.log('收到數據:', data);
 
+            // // 處理截圖響應
+            // if (data.type === 'screenshot' && data.imageData) {
+            //     // 創建圖片元素
+            //     const img = document.createElement('img');
+            //     img.src = 'data:image/jpeg;base64,' + data.imageData;
+            //     img.setAttribute('alt', 'Screenshot ' + new Date().toLocaleTimeString());
+            //     img.className = 'screenshot-image';
+        
+            //     // screenshot-time
+            //     const now = new Date();
+            //     const timeString = now.toLocaleTimeString('en-US');
+            //     const timestamp = document.createElement('div');
+            //     timestamp.textContent = timeString;
+            //     timestamp.className = 'screenshot-timestamp';
+        
+            //     // 創建容器
+            //     const container = document.createElement('div');
+            //     container.className = 'screenshot-item';
+            //     container.appendChild(img);
+            //     container.appendChild(timestamp);
+        
+            //     // 添加到截圖列表
+            //     screenshotList.appendChild(container);
+        
+            //     // 滾動到新添加的截圖
+            //     setTimeout(() => {
+            //         screenshotList.scrollLeft = screenshotList.scrollWidth;
+            //     }, 100);
+        
+            //     console.log('收到並顯示了來自樹莓派的截圖');
+            // }
+
+            // const buffer = event.data;
+
+            // const view = new DataView(buffer);
+
+
+            // const jsonLen = view.getUint32(0,false);
+            // console.log("JSON 长度:", jsonLen);
+
+            // const jsonBytes = new Uint8Array(buffer, 4, jsonLen);
+            // const jsonText = new TextDecoder().decode(jsonBytes);
+            // const data = JSON.parse(jsonText);
+            // console.log('收到數據:', data);
+
+            // const jpegBytes = new Uint8Array(buffer, 4 + jsonLen);
+            // const blob = new Blob([jpegBytes], { type: "image/jpeg" });
+            // const url = URL.createObjectURL(blob);
+
+            // const img = document.getElementById("camera-stream");
+
+            // if (isCameraRequested){
+            //     img.src = url;
+            //     img.onload = () => URL.revokeObjectURL(url);
+            // }
+
+
+
             // 使用您的現有函數更新資源顯示
             updateSystemResources(data);
-        
-            
-            // 如果有其他數據(例如 CPU, GPU)，也可以添加到 resourceData
-            if (data.cpu) 
-            {
-                resourceData.cpuUsage = data.cpu.usage;
-                resourceData.cpuTemp = data.cpu.temperature;
-            }
-            
-            if (data.gpu) {
-                resourceData.gpuUsage = data.gpu.usage;
-            }
-            
-            if (data.memory) {
-                resourceData.ramUsage = data.memory.ram;
-                resourceData.swapUsage = data.memory.swap;
-            }
-            
             
         } catch (error) {
             console.error('處理數據時出錯:', error);
         }
-    };
+};
     
     // 連接關閉時
     socket.onclose = function() {
@@ -136,135 +204,221 @@ function reconnect() {
 // Function to update gauges
 function updateGauges(distance) {
   
+     // 將距離數值四捨五入到小數點後兩位
+     const formattedDistance = parseFloat(distance).toFixed(2);
+
     // Update distance gauge
     const distancePointer = document.getElementById('distance-pointer');
     const distanceText = document.getElementById('distance-text');
-    const distanceAngle = (distance / maxDistance) * 180 - 90;
+    const distanceAngle = (formattedDistance / maxDistance) * 180 - 90;
     distancePointer.style.transform = `rotate(${distanceAngle}deg)`;
-    distanceText.textContent = `${distance} cm`;
+    distanceText.textContent = `${formattedDistance} cm`;
 }
 
 // Start camera function
 async function startCamera() {
-    try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-                facingMode: "environment"
-            }, 
-            audio: false 
-        });
 
-        videoElement.srcObject = mediaStream;
-        startButton.disabled = true;
-        stopButton.disabled = false;
-        captureButton.disabled = false;
-        if (errorMessage) errorMessage.textContent = '';
-    } catch (err) {
-        console.error('Camera access error:', err);
-        if (errorMessage) errorMessage.textContent = `Error: ${err.message}`;
+    console.log("start camera function");
+
+    document.getElementById('camera-placeholder').style.display = 'none';
+    document.getElementById('camera-stream').style.display = 'block';
+
+    startButton.disabled = true;
+    stopButton.disabled = false;
+    captureButton.disabled = false;
+
+
+    if (window.robotSocket && window.robotSocket.readyState === WebSocket.OPEN) {
+        window.robotSocket.send(JSON.stringify({
+            type: "command", 
+            action: "start_camera"
+        }));
+        console.log("start_camera");
     }
 }
 
 // Stop camera function
 function stopCamera() {
-    if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
-        videoElement.srcObject = null;
-        startButton.disabled = false;
-        stopButton.disabled = true;
-        captureButton.disabled = true;
+    // 移除所有事件監聽器再清除源
+
+    if (!window.robotSocket){
+        console.log("websocket不存在");
     }
+    else{
+        console.log("websocket 存在");
+    }
+
+    if (window.robotSocket && window.robotSocket.readyState === WebSocket.OPEN) {
+        window.robotSocket.send(JSON.stringify({
+            type: "command", 
+            action: "stop_camera"
+        }));
+        console.log("sending camera stop message");
+    }
+    
+    document.getElementById('camera-placeholder').style.display = 'flex';
+    document.getElementById('camera-stream').style.display = 'none';
+
+    startButton.disabled = false;
+    stopButton.disabled = true;
+    captureButton.disabled = true;
+    
+    console.log('攝影機已停止');
 }
 
-// Handle direction function
+// Handle chassis direction function
 function handleDirection(direction) {
     console.log(`Moving: ${direction}`);
-    // Add your Raspberry Pi control logic here
-    
+   
     // Simulate gauge changes (replace with actual values from robot)
-    let currentSpeed = parseInt(document.getElementById('speed-text').textContent);
     let currentDistance = parseInt(document.getElementById('distance-text').textContent);
     let moveInterval = null;
-    
-    if (direction === 'forward') {
-        currentSpeed = Math.min(maxSpeed, currentSpeed + 10);
+
+    if (direction === 'Forward') {
         window.robotSocket.send(JSON.stringify({type:"command", action: "move_forward"}));
     } 
     else 
-    if (direction === 'back') {
-        currentSpeed = Math.max(0, currentSpeed - 10);
+    if (direction === 'Backward') {
         window.robotSocket.send(JSON.stringify({type:"command", action: "move_back"}));
     }
     else 
-    if (direction === 'left') {
-        currentSpeed = Math.max(0, currentSpeed - 10);
+    if (direction === 'Left') {
         window.robotSocket.send(JSON.stringify({type:"command", action: "move_left"}));
     }
     else 
-    if (direction === 'right') {
-        currentSpeed = Math.max(0, currentSpeed - 10);
+    if (direction === 'Right') {
         window.robotSocket.send(JSON.stringify({type:"command", action: "move_right"}));
     }
+     // Random distance change for demo purposes
+     currentDistance = Math.max(0, Math.min(maxDistance, currentDistance + (Math.random() * 20 - 10)));
     
-    // Random distance change for demo purposes
-    currentDistance = Math.max(0, Math.min(maxDistance, currentDistance + (Math.random() * 20 - 10)));
-    
-    updateGauges(currentSpeed, currentDistance);
+     updateGauges(currentDistance);
 }
+
+
+  // 添加handleArmControl 函數
+function handleArmControl(action) {
+    console.log(`Arm action: ${action}`);
+
+    if (window.robotSocket && window.robotSocket.readyState === WebSocket.OPEN) {
+        if (action === 'Head Up') {
+            window.robotSocket.send(JSON.stringify({type: "command", action: "up"}));
+        } else if (action === 'Head Down') {
+            window.robotSocket.send(JSON.stringify({type: "command", action: "down"}));
+        }else if (action === 'Forward'){
+            window.robotSocket.send(JSON.stringify({type: "command", action: "For"}));
+        }else if (action === 'Backward'){
+            window.robotSocket.send(JSON.stringify({type: "command", action: "Back"}));
+        }else if (action === 'Rotate Left'){
+            window.robotSocket.send(JSON.stringify({type: "command", action: "Rotate_L"}));
+        }else if (action === 'Rotate Right'){
+            window.robotSocket.send(JSON.stringify({type: "command", action: "Rotate_R"}));
+        }else if (action === 'Cut'){
+            window.robotSocket.send(JSON.stringify({type: "command", action: "cut"}));
+        }else if (action === 'Release'){
+            window.robotSocket.send(JSON.stringify({type: "command", action: "release"}));
+        
+    } else {
+        console.error('WebSocket 尚未連線');
+    }
+}
+}
+   
 
 // Handle camera movement
 function handleCameraMove(direction) {
-    console.log(`Camera moving: ${direction}`);
-    // Add camera servo control logic here
+    console.log(`攝像頭移動: ${direction}`);
+
+
+    if (direction === 'up') {
+        window.robotSocket.send(JSON.stringify({type:"command", action: "camera_move_up"}));
+    } 
+    else if (direction === 'down') {
+        window.robotSocket.send(JSON.stringify({type:"command", action: "camera_move_down"}));
+    }
+    else{
+        console.error()
+    }
+    
+    // 確保 WebSocket 已連接
+    // if (window.robotSocket && window.robotSocket.readyState === WebSocket.OPEN) {
+    //     try {
+    //         if (direction === "up") {
+    //             window.robotSocket.send(JSON.stringify({
+    //                 type: "command", 
+    //                 action: "camera_move_up"
+    //             }));
+    //         } else if (direction === "down") {
+    //             window.robotSocket.send(JSON.stringify({
+    //                 type: "command", 
+    //                 action: "camera_move_down"
+    //             }));
+    //         }
+    //     } catch (error) {
+    //         console.error('發送 WebSocket 命令時出錯:', error);
+    //     }
+    // } else {
+    //     console.error('WebSocket 未連接，無法發送攝像頭移動命令');
+    // }
 }
 
-// Function to handle mechanical arm control
-function handleArmControl(action) {
-    console.log(`Arm action: ${action}`);
-    // Add code to control the mechanical arm via Raspberry Pi
-}
 
 // Capture screenshot
 function captureScreenshot() {
-    if (!videoElement.srcObject) return;
+
+
+    console.log("開始截圖...");
     
-    // Create canvas
+    // 獲取視頻元素
+    const videoElement = document.getElementById('camera-stream');
+    console.log("video dimensions:", videoElement.videoWidth, videoElement.videoHeight);
+    // 創建 Canvas 元素
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    canvas.width = videoElement.naturalWidth;
+    canvas.height = videoElement.naturalHeight;
     
-    // Set canvas dimensions
-    canvas.width = videoElement.videoWidth;
-    canvas.height = videoElement.videoHeight;
+    // 在 Canvas 上繪製當前視頻幀
+    const ctx = canvas.getContext('2d');
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
     
-    // Get image URL
-    const imgDataURL = canvas.toDataURL('image/png');
+    // 將 Canvas 轉換為圖片
+    const imgSrc = canvas.toDataURL('image/jpeg');
     
-    // Create image element
+    // 創建圖片元素
     const img = document.createElement('img');
-    img.src = imgDataURL;
-    img.setAttribute('alt', 'Screenshot ' + new Date().toLocaleTimeString());
+    img.src = imgSrc;
+    img.className = 'screenshot-image';
+    img.style.width = '160px';
+    img.style.height = '120px';
+    img.style.objectFit = 'cover';
+    img.style.border = '1px solid #ddd';
+    img.style.borderRadius = '4px';
+    img.style.transform = 'rotate(180deg)';
     
-    // Create timestamp element
+    // 創建時間戳
     const now = new Date();
     const timeString = now.toLocaleTimeString();
-    const timestamp = document.createElement('div');
-    timestamp.textContent = timeString;
-    timestamp.className = 'screenshot-timestamp';
+    const timestamp_elem = document.createElement('div');
+    timestamp_elem.textContent = timeString;
+    timestamp_elem.className = 'screenshot-timestamp';
     
-    // Create container for the image and timestamp
+    // 創建容器
     const container = document.createElement('div');
     container.className = 'screenshot-item';
     container.appendChild(img);
-    container.appendChild(timestamp);
+    container.appendChild(timestamp_elem);
     
-    // Add to screenshot list
+    // 添加到截圖列表
     screenshotList.appendChild(container);
     
-    // Scroll to the newly added screenshot
+    // 滾動到新添加的截圖
     setTimeout(() => {
         screenshotList.scrollLeft = screenshotList.scrollWidth;
     }, 100);
+    
+    console.log('已添加視頻畫面作為截圖');
+    
+
 }
 
 // Fix screenshot scroll functionality
@@ -388,7 +542,7 @@ function initializeSystemResources() {
     const resourceElements = [
         { id: 'cpu-usage', label: 'CPU Usage' },
         { id: 'cpu-temperature', label: 'CPU Temp' },
-        { id: 'gpu-usage', label: 'GPU Usage' },
+        
         { id: 'ram-usage', label: 'RAM Usage' },
         { id: 'swap-usage', label: 'Swap Usage' }
     ];
@@ -453,7 +607,7 @@ function updateSystemResources(data) {
     if (data.voltage !== undefined) {
         updateBatteryVoltage(data.voltage);
     }
- // 更新 CPU 資源 - 注意這裡的修改
+ // 更新 CPU info
  if (data.cpu) {
     if (data.cpu.temperature !== undefined) {
         updateProgressBar('cpu-temperature', data.cpu.temperature);
@@ -462,17 +616,13 @@ function updateSystemResources(data) {
         updateProgressBar('cpu-usage', data.cpu.usage);
     }
 }
+//更新ram/swap
+    if (data.memory.ram !== undefined) updateProgressBar('ram-usage', data.memory.ram);
+    if (data.memory.swap !== undefined) updateProgressBar('swap-usage', data.memory.swap);
 
-    /*
-    // Update progress bars with real data
-    
-    
-    if (data.gpuUsage !== undefined) updateProgressBar('gpu-usage', data.gpuUsage);
-    if (data.gpuTemp !== undefined) updateProgressBar('gpu-temperature', data.gpuTemp);
-    if (data.ramUsage !== undefined) updateProgressBar('ram-usage', data.ramUsage);
-    if (data.swapUsage !== undefined) updateProgressBar('swap-usage', data.swapUsage);
-    */ 
-    
+// 更新distance
+if (data.distance !== undefined) updateGauges(data.distance);    
+
 }
 
 // Helper function to update a single progress bar
@@ -558,12 +708,15 @@ function setupMechanicalArmTabs() {
     // Get DOM elements
     const movementTab = document.getElementById('movement-tab');
     const gripperTab = document.getElementById('gripper-tab');
+
     const movementBtn = document.querySelector('.arm-tab-btn[data-tab="movement"]');
     const gripperBtn = document.querySelector('.arm-tab-btn[data-tab="gripper"]');
+   
     
     // Check if elements exist
-    if (!movementTab || !gripperTab || !movementBtn || !gripperBtn) {
-        console.error("Mechanical arm control tab elements don't exist, can't initialize");
+    if (!movementTab || !gripperTab ||  
+        !movementBtn || !gripperBtn ) {
+        console.error("Mechanical arm controfl tab elements don't exist, can't initialize");
         return;
     }
     
@@ -571,23 +724,26 @@ function setupMechanicalArmTabs() {
     
     // Set click events - movement control tab
     movementBtn.onclick = function() {
-        // Remove all active states
         movementBtn.classList.add('active');
         gripperBtn.classList.remove('active');
+        
         movementTab.classList.add('active');
         gripperTab.classList.remove('active');
+        
         console.log("Switched to movement control tab");
     };
-    
+
     // Set click events - gripper control tab
-    gripperBtn.onclick = function() {
-        // Remove all active states
+       gripperBtn.onclick = function() {
         gripperBtn.classList.add('active');
         movementBtn.classList.remove('active');
+        
         gripperTab.classList.add('active');
         movementTab.classList.remove('active');
+        
         console.log("Switched to gripper control tab");
     };
+   
     
     // Add event listeners for mechanical arm buttons
     const armButtons = {
@@ -596,8 +752,10 @@ function setupMechanicalArmTabs() {
         forward: document.getElementById('arm-forward-btn'),
         backward: document.getElementById('arm-backward-btn'),
         cut: document.getElementById('arm-cut-btn'),
+        release: document.getElementById('arm-release-btn'),
         rotateLeft: document.getElementById('arm-rotate-left-btn'),
-        rotateRight: document.getElementById('arm-rotate-right-btn')
+        rotateRight: document.getElementById('arm-rotate-right-btn'),
+       
     };
     
     // Add button event listeners
@@ -606,6 +764,7 @@ function setupMechanicalArmTabs() {
             button.addEventListener('click', () => handleArmControl(button.textContent));
         }
     });
+
     
     console.log("Mechanical arm control tabs setup complete");
 }
@@ -634,6 +793,7 @@ window.addEventListener('load', function() {
             });
         }
     });
+
 
     // Initialize Keyboard Direction Control For Robot Moving
     const KeyToAction = {
@@ -680,7 +840,7 @@ window.addEventListener('load', function() {
     setupWebSocketConnection();
     
     // Initialize gauges
-    updateGauges(0, 0);
+    updateGauges(0);
     
     // Make sure screenshot scroll functionality works
     setTimeout(fixScreenshotScroll, 500);
