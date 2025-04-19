@@ -2,14 +2,14 @@
 #include <unistd.h>     // usleep
 #include "UserInput.h"  // 你的 getch() 实现
 #include "RoboArm.h"    // 包含 ArmState / API
-#include "SCSCL.h"      // 仅 main.cpp 需要知道库细节
+#include "Control.h"      // 仅 main.cpp 需要知道库细节
 
-SCSCL     sc;
+Control   sc;
 ArmState  st;           // 实时姿态缓存
 
 int main(int /*argc*/, char ** /*argv*/)
 {
-    if (!sc.begin(115200, "/dev/ttyUSB0")) {
+    if (!sc.Begin(115200, "/dev/ttyUSB0")) {
         std::cerr << "初始化 SCSCL 失败！\n";
         return 1;
     }
@@ -75,6 +75,6 @@ int main(int /*argc*/, char ** /*argv*/)
 EXIT_LOOP:
     sc.EnableTorque(0, 0);          // 保险起见关掉
     sc.EnableTorque(1, 0);
-    sc.end();
+    sc.End();
     return 0;
 }
