@@ -29,12 +29,12 @@ int main(int /*argc*/, char ** /*argv*/)
         char key = getch();         // 阻塞式读取；若想非阻塞需自行改
         switch (key) {
             case 'w':
-                MoveForward(sc, st, 50);
+                MoveForward(sc, st, 30);
                 PrintState(st, "FWD");
                 break;
 
             case 's':
-                MoveBackward(sc, st, 50);
+                MoveBackward(sc, st, 30);
                 PrintState(st, "BACK");
                 break;
 
@@ -46,12 +46,12 @@ int main(int /*argc*/, char ** /*argv*/)
                 break;
 
             case 'i':
-                HeadUp(sc, st, 50, 400);
+                HeadUp(sc, st, 30, 400);
                 PrintState(st, "UP");
                 break;
 
             case 'k':
-                HeadDown(sc, st, 50, 200);
+                HeadDown(sc, st, 30, 200);
                 PrintState(st, "DOWN");
                 break;
 
