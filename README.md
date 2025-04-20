@@ -25,9 +25,7 @@ A smart agricultural robot based on **Raspberry Pi 5** and the **Adeept robot ki
 - **Tracked Chassis Drive System**  
   Uses **PCA9685 PWM controller** to generate signals for **DRV8833 motor drivers**, enabling forward, backward, and turning motions via DC motors.
 
-- **Web-based Control Interface**  
-  ## 🌿 Remote Control Interface
-
+- **🌿Web-based Control Interface**  
 The UI remains responsive and continuously updates via **WebSocket connections**, ensuring real-time synchronization of all system metrics and status indicators.
 
 Accessible via any web browser, the UI displays:
