@@ -22,6 +22,28 @@ The Plant Proetction Robot is a guarder which be used to check the status of the
 ### 2.2 Robotic Arm
 
 ### 2.3 Video Streaming 
+The video streaming system utilizes LibCamera integrated with OpenCV and a web-based interfaced to deliver real-time visual feedback from the robot.
+
+The video streaming is built on **Professor Bernd Porr's libcamera2opencv library**(https://github.com/berndporr/libcamera2opencv.git), which we've extended to support web-based streaming.
+
+We developed a LibCam2Web class that bridges the gap between the camera and web-based streaming. This implementation uses:
+
+- **LibCamera API**  
+  For direct hardware access to Raspberry Pi camera module, offering better perfromance.
+
+- **OpenCV**  
+  For frame processing, format conversion (BGR to RGB color space), and JPEG compression.
+
+- **HTTP Streaming**  
+  A lightweight HTTP server that delivers MJPEG streams viewable in any modern web browse.
+
+
+The streaming process follows these steps:
+- The Libcam2OpenCV class captures raw frames from the camera module.
+- Each captured frame is processed through a callback system.
+- Frames are converted to JPEG format with configurable quality.
+- The SimpleHttpServer delivers these frames to connected clients.
+- Thread locks (mutexes) make sure the video frames stay complete when multiple parts of the program try to use them at the same time.
 
 ### 2.4 Website Server
 The UI remains responsive and continuously updates via **WebSocket**, allowing two-way data exchange between the browser and the robot. Movement commands are sent instantly when buttons are pressed, and sensor data updates are received in **real time**. This ensures low-latency control and live system monitoring without the need to refresh the page.
