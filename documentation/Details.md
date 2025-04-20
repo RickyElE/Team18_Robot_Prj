@@ -51,17 +51,17 @@ The UI remains responsive and continuously updates via **WebSocket**, allowing t
 **Remote Control System Integration :** 
 The remote control system integrates frontend JavaScript with backend C++ code through WebSocket communication, creating a complete control loop for the robot's operation.Movement commands are sent instantly when buttons are pressed, and sensor data updates are received in real time.
 
-1️⃣**WebSocket Connection Establishment**:  
+1️⃣**WebSocket Connection Establishment**: 
 - Browser connects to server using **WebSocket('ws://192.168.1.100:8084')**
 - Bidirectional communication channel established for control and monitoring
 
 
-2️⃣**Command Transmission**:
+2️⃣**Command Transmission**
 - User interactions captured by JavaScript event listeners
 - Commands formatted as for example **JSON: {type: "command", action: "move_forward"}** 
 action: Defines the specific control action.
 
-3️⃣**Feedback Loop**
+3️⃣**Feedback**
 - Sensor data collected and sent back via same WebSocket connection
 - UI updates in real-time to display current robot status and camera feed
 
