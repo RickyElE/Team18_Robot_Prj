@@ -122,3 +122,11 @@ ${CMAKE_SOURCE_DIR}/main/main.cpp)
 add_executable(sysInfo_test 
 ${CMAKE_SOURCE_DIR}/src/test/sysInfo_test.cpp 
 ${CMAKE_SOURCE_DIR}/include/driver/SysInfo/SystemInfo.cpp)  
+
+install(TARGETS main DESTINATION bin)
+
+add_executable(serialmotor_test 
+${CMAKE_SOURCE_DIR}/src/test/serialmotor_test.cpp 
+${CMAKE_SOURCE_DIR}/include/driver/SerialMotor/Control/Control.cpp
+${CMAKE_SOURCE_DIR}/include/driver/SerialMotor/Serial/Serial.cpp
+${CMAKE_SOURCE_DIR}/include/driver/SerialMotor/Communication/Communication.cpp) 

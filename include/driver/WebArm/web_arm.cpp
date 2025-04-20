@@ -119,6 +119,9 @@ bool Arm::Initial_Arm(){
         sc.End();
         return false;
     }
+    running_ = true;
+    feedback_thread_ = std::thread(&Arm::feedback_thread,this);
+    delay.delay_ms(200);
     pca.setPWMFreq(50);
     pca.wakeup();
     initial_roboarm();
@@ -127,3 +130,13 @@ bool Arm::Initial_Arm(){
     return true;
 }
 
+void Arm::feedback_thread(){
+    Delay delay;
+    std::cout << "feedback is running" << std::endl;
+    while(running_){
+        for (uint8_t id = 1; id <= 6; ++id){
+            sc.FeedBack(id);
+        }
+        delay.delay_ms(1);
+    }
+}

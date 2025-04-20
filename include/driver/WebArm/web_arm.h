@@ -44,13 +44,17 @@ public:
 
     void stop();
 
-
+    void feedback_thread();
 private:
     Control sc;    // SCServo
     PCA9685 pca;   // PCA9685
     ArmState st;    // 基座/头部状态
     std::mutex  hw_mutex_;
+    std::thread feedback_thread_;
 
+    std::atomic_bool running_ = false;
+
+    Delay delay;
 };
 
 #endif 

@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <iterator>
+
 Communication::Communication(){
     level = 1;
     error = 0;
@@ -365,7 +367,7 @@ int Communication::syncReadRxPacketToByte()
 	return syncReadRxPacket[syncReadRxPacketIndex++];
 }
 
-int Communication::syncReadRxPacketToWrod(uint8_t negBit)
+int Communication::syncReadRxPacketToWord(uint8_t negBit)
 {
 	if((syncReadRxPacketIndex+1)>=syncReadRxPacketLen){
 		return -1;
@@ -379,3 +381,134 @@ int Communication::syncReadRxPacketToWrod(uint8_t negBit)
 	}
 	return word;
 }
+
+void Communication::feedBytes(const uint8_t* data, int len) {
+    rxBuf_.insert(rxBuf_.end(), data, data + len);
+
+    static const uint8_t header[] = {0xff, 0xff};
+    while (rxBuf_.size() >= 6) {
+        auto it = std::search(
+            rxBuf_.begin(), rxBuf_.end(),
+            std::begin(header), std::end(header)
+        );
+        if (it == rxBuf_.end()) {
+            rxBuf_.clear();
+            break;
+        }
+        size_t idx = it - rxBuf_.begin();
+        if (rxBuf_.size() < idx + 4) break;
+        uint8_t length = rxBuf_[idx + 3];
+        size_t pktSize = size_t(length) + 4;
+        if (rxBuf_.size() < idx + pktSize) break;
+
+        std::vector<uint8_t> pkt(
+            rxBuf_.begin() + idx,
+            rxBuf_.begin() + idx + pktSize
+        );
+
+        rxBuf_.erase(rxBuf_.begin(), rxBuf_.begin() + idx + pktSize);
+
+        processPacket(pkt);
+    }
+}
+
+void Communication::processPacket(const std::vector<uint8_t>& pkt) {
+    if (pkt.size() < 6) return;
+    uint8_t id     = pkt[2];
+    uint8_t length = pkt[3];
+    // uint8_t err = pkt[4];
+    uint8_t addr   = pkt[5];
+    uint8_t plen   = length - 2;
+    const uint8_t* payload = pkt.data() + 6;
+
+    switch (addr) {
+      case SERIAL_PRESENT_POSITION_L:
+        if (plen == 2) {
+            int16_t raw = Char2Short(payload[0], payload[1]);
+            cachePos_[id] = raw;
+            if (cbPos_) cbPos_(id, raw);
+        }
+        break;
+      case SERIAL_PRESENT_SPEED_L:
+        if (plen == 2) {
+            int16_t raw = Char2Short(payload[0], payload[1]);
+            cacheSpd_[id] = raw;
+            if (cbSpd_) cbSpd_(id, raw);
+        }
+        break;
+      case SERIAL_PRESENT_LOAD_L:
+        if (plen == 2) {
+            int16_t raw = Char2Short(payload[0], payload[1]);
+            cacheLoad_[id] = raw;
+            if (cbLoad_) cbLoad_(id, raw);
+        }
+        break;
+      case SERIAL_PRESENT_VOLTAGE:
+        if (plen == 1) {
+            uint8_t raw = payload[0];
+            cacheVlt_[id] = raw;
+            if (cbVlt_) cbVlt_(id, raw);
+        }
+        break;
+      case SERIAL_PRESENT_TEMPERATURE:
+        if (plen == 1) {
+            uint8_t raw = payload[0];
+            cacheTmp_[id] = raw;
+            if (cbTmp_) cbTmp_(id, raw);
+        }
+        break;
+      case SERIAL_MOVING:
+        if (plen == 1) {
+            uint8_t raw = payload[0];
+            cacheMov_[id] = raw;
+            if (cbMov_) cbMov_(id, raw);
+        }
+        break;
+      case SERIAL_PRESENT_CURRENT_L:
+        if (plen == 2) {
+            int16_t raw = Char2Short(payload[0], payload[1]);
+            cacheCurr_[id] = raw;
+            if (cbCurr_) cbCurr_(id, raw);
+        }
+        break;
+      default:
+        break;
+    }
+}
+
+int16_t Communication::getCachedPosition(uint8_t id) const {
+    auto it = cachePos_.find(id);
+    return it == cachePos_.end() ? int16_t(-1) : it->second;
+}
+int16_t Communication::getCachedSpeed(uint8_t id) const {
+    auto it = cacheSpd_.find(id);
+    return it == cacheSpd_.end() ? int16_t(-1) : it->second;
+}
+int16_t Communication::getCachedLoad(uint8_t id) const {
+    auto it = cacheLoad_.find(id);
+    return it == cacheLoad_.end() ? int16_t(-1) : it->second;
+}
+uint8_t Communication::getCachedVoltage(uint8_t id) const {
+    auto it = cacheVlt_.find(id);
+    return it == cacheVlt_.end() ? uint8_t(0xFF) : it->second;
+}
+uint8_t Communication::getCachedTemperature(uint8_t id) const {
+    auto it = cacheTmp_.find(id);
+    return it == cacheTmp_.end() ? uint8_t(0xFF) : it->second;
+}
+uint8_t Communication::getCachedMoving(uint8_t id) const {
+    auto it = cacheMov_.find(id);
+    return it == cacheMov_.end() ? uint8_t(0xFF) : it->second;
+}
+int16_t Communication::getCachedCurrent(uint8_t id) const {
+    auto it = cacheCurr_.find(id);
+    return it == cacheCurr_.end() ? int16_t(-1) : it->second;
+}
+
+void Communication::setPositionCallback(PosCb cb){ cbPos_ = std::move(cb); }
+void Communication::setSpeedCallback(SpeedCb cb)   { cbSpd_ = std::move(cb); }
+void Communication::setLoadCallback(LoadCb cb)     { cbLoad_ = std::move(cb); }
+void Communication::setVoltageCallback(VoltCb cb)  { cbVlt_ = std::move(cb); }
+void Communication::setTemperatureCallback(TempCb cb){ cbTmp_ = std::move(cb); }
+void Communication::setMovingCallback(MovingCb cb) { cbMov_ = std::move(cb); }
+void Communication::setCurrentCallback(CurrCb cb)  { cbCurr_ = std::move(cb); }

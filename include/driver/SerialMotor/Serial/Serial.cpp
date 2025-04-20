@@ -1,9 +1,14 @@
 #include "Serial.h"
 #include "Communication.h"
+#include <bits/types/struct_timeval.h>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <fcntl.h>
+#include <iostream>
+#include <sys/select.h>
 #include <termios.h>
+#include <thread>
 
 Serial::Serial(){
     time_out = 100;
@@ -25,6 +30,10 @@ Serial::Serial(uint8_t end, uint8_t level) : Communication(end, level){
 
 bool Serial::Begin(int baudRate, const char *serialPort){
     if (fd != -1){
+        running_ = false;
+        if (reader_.joinable()){
+            reader_.join();
+        }
         close(fd);
         fd = -1;
     }
@@ -69,26 +78,30 @@ bool Serial::Begin(int baudRate, const char *serialPort){
         default:
             BAUDRATE = B115200;
             break;
-        }
-        cfsetispeed(&curopt, BAUDRATE);
-        cfsetospeed(&curopt, BAUDRATE);
-    
-        printf("serial speed %d\n", baudRate);
-        //Mostly 8N1
-        curopt.c_cflag &= ~PARENB;
-        curopt.c_cflag &= ~CSTOPB;
-        curopt.c_cflag &= ~CSIZE;
-        curopt.c_cflag |= CS8;
-        curopt.c_cflag |= CREAD;
-        curopt.c_cflag |= CLOCAL;//disable modem statuc check
-        cfmakeraw(&curopt);//make raw mode
-        curopt.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-        if(tcsetattr(fd, TCSANOW, &curopt) == 0){
-            return true;
-        }else{
-            perror("tcsetattr:");
-            return false;
-        }
+    }
+    cfsetispeed(&curopt, BAUDRATE);
+    cfsetospeed(&curopt, BAUDRATE);
+
+    printf("serial speed %d\n", baudRate);
+    //Mostly 8N1
+    curopt.c_cflag &= ~PARENB;
+    curopt.c_cflag &= ~CSTOPB;
+    curopt.c_cflag &= ~CSIZE;
+    curopt.c_cflag |= CS8;
+    curopt.c_cflag |= CREAD;
+    curopt.c_cflag |= CLOCAL;//disable modem status check
+    cfmakeraw(&curopt);//make raw mode
+    curopt.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    if(tcsetattr(fd, TCSANOW, &curopt) < 0){
+        perror("tcsetattr:");
+        close(fd);
+        fd = -1;
+        return false;
+    }
+    running_ = true;
+    reader_ = std::thread(&Serial::readLoop,this);
+    return true;
+
 }
 
 int Serial::SetBaudRate(int baudRate)
@@ -186,6 +199,30 @@ void Serial::WriteSerialFlush()
 
 void Serial::End()
 {
-	fd = -1;
-	close(fd);
+    if (fd != -1){
+        running_ = false;
+        if (reader_.joinable()){
+            reader_.join();
+        }
+        tcsetattr(fd, TCSANOW, &orgopt);
+        close(fd);
+        fd = -1;
+    }
+}
+
+void Serial::readLoop(){
+    uint8_t buf[256];
+    std::cout << "readLoop is Running!" << std::endl;
+    while(running_){
+        fd_set fds;
+        FD_ZERO(&fds);
+        struct timeval tv{0, 100 * 1000};
+        int ret = select(fd + 1, &fds, nullptr, nullptr, &tv);
+        if (ret > 0 && FD_ISSET(fd, &fds)){
+            int n = ::read(fd, buf, sizeof(buf));
+            if (n > 0){
+                feedBytes(buf, n);
+            }
+        }
+    }
 }
