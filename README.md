@@ -26,7 +26,37 @@ A smart agricultural robot based on **Raspberry Pi 5** and the **Adeept robot ki
   Uses **PCA9685 PWM controller** to generate signals for **DRV8833 motor drivers**, enabling forward, backward, and turning motions via DC motors.
 
 - **Web-based Control Interface**  
-  A lightweight front-end allows real-time control and monitoring via WebSocket over local network.
+  ## 🌿 Remote Control Interface
+
+The UI remains responsive and continuously updates via **WebSocket connections**, ensuring real-time synchronization of all system metrics and status indicators.
+
+Accessible via any web browser, the UI displays:
+
+### 🔐 Login System Interface
+Users must log in with a username and password:
+- **Username**: `robot`  
+- **Password**: `robot`
+
+### 🚗 Movement Controls
+Movement control through directional buttons to control the robot.
+
+### 🤖 Mechanical Arm Operations (Tabbed Interface)
+- **Movement tab**: Controls vertical and forward/backward arm movement  
+- **Clamp tab**: Controls the clamp for cutting, releasing, and rotation
+
+### 📷 Live Camera and Screenshots
+- Displays the robot’s live video stream  
+- Camera control buttons for up/down movement  
+- Supports timestamped screenshots with a scrolling gallery
+
+### 📊 System Status
+- Distance measurements from the ultrasonic sensor via gauge  
+- System resource monitoring:  
+  - Battery information  
+  - CPU temperature and usage  
+  - RAM usage  
+  - Swap memory usage
+
 
 ---
 
