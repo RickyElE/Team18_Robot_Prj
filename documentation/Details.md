@@ -1,38 +1,49 @@
-# _**Team18_Robot_Prj**_
-# The Plant Protection Robot is based on Raspberry Pi 5
+# _**Team18_Robot_Prj**_ : Plant Protection Robot
 
-## Introduction
+## 1. Introduction
 ### 1.1 What is it?
-The Plant Proetction Robot is a defender which be used to check the circumstance of the plant when the outside environment is not suitable for people to work. Like extreme weather and so on. Then people can remote control it to check the plant and do something else, such as cutting branches and leaves, and even sparing pesticides to drive away pests. This robot is based on Adeept's ADR013 robot kit: https://www.adeept.com/rasptank_p0121.html. We will use the robot kit to develop our coding and logic, therefore finishing our target of Plant Proetction.
+The Plant Proetction Robot is a guarder which be used to check the status of the plants when people do not want to work outside. Then people can remote control it to check the plant and do something else, such as cutting branches and leaves. This robot is based on **Adeept's ADR013 robot kit**: https://www.adeept.com/rasptank_p0121.html, and the **Raspberry Pi 5** with **RaspberryPi OS**. We will use the robot kit and pi to develop our coding and logic, therefore finishing our target of Plant Proetction.
 
-### 1.2 The structure:
-![alt text](image.png)
-#### Motor
-We will use the DC Motors to as our driver to move our robot. Then using the servo motors as the actuator of robotic arm.
+## 2. Robot Structure
 
-#### Sensor
-We will use Ultrasonic sensor to detect the obstacles and calculate the distances.
+### 2.1 Chassis
 
-#### Camera
-We will use the camera to do some real-time work, like monitoring or controlling.
+#### 2.1.1 Moving
+- The chassis of the robot is tracked. We use the **IIC protocol** to write **PWM** generation instructions to the **PCA9685**. By adjusting the duty cycle of the **PWM** wave, we can change the output of the **DRV8833**, thereby controlling the forward or reverse rotation of the **DC motor**. So we can generate a wheel speed difference based on this to achieve the purposes of moving **forward**, **backward** and turning **left** and **right**.
 
-#### Wifi/Bluetooth
-We will use the wireless technology to make remote-control and monitoring come true.
+#### 2.1.2 Obstacle Detection
+- We installed the ultrasonic sensor of model **HC-SR04** right in front of the robot. It calculates the distance between the obstacle and the front of the robot by the time difference between the emission of **ultrasonic waves** and their reception. Therefore, the correct waveform must first be sent to the **trig port** to request the sensor to emit ultrasonic waves. Then, the timing starts when the **rising edge of the echo port** is triggered and ends when the **falling edge of the echo port** is triggered. The time in between can be used to calculate the distance. **Reference Link:** https://akizukidenshi.com/goodsaffix/hc-sr04_v20.pdf
 
-### 1.3 Team Collaborator
+#### 2.1.3 System Info
+- Monitor the temperature and usage rate of the CPU, as well as the usage rate of memory and memory swap. To avoid overheat.
+- The **ADS7830** collects **battery voltage** information and **power status** in real time to prevent the robot from having too low a battery.
+
+
+### 2.2 Robotic Arm
+
+### 2.3 Video Streaming 
+
+### 2.4 Website Server
+---
+## 3 Software Structure
+
+### 3.1 Callback and Events
+In sensor reading and system info reading
+
+## 4 Team 
+### 4.1 Collaborator
 Leader - Zhihong Xu
 
 Collaborator - YUWEN WANG, Guining Zhang, Guankai Wang, JUIHSIN CHANG
 
-### 1.4 The Arrangement
+### 4.2 The Arrangement
 Chassis & System Structure - Zhihong Xu
 
 Robotic Arm - Guankai Wang, Guining Zhang
 
 Vision & Communication - YUWEN WANG, JUIHSIN CHANG
 
-### 1.5 Social Media link
-We create the Instagram account for our robot, which is called plant_protection_robot. Here is the link:
+## 
 
 
                        
