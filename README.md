@@ -32,20 +32,23 @@ Accessible via any web browser, the UI displays:
 
 - **🔐Login System Interface**
 Users must log in with a username and password:
-- Username: `robot`  
-- Password: `robot`
+- Username/Password: `robot`  
+
 - **🚗 Movement Controls**
-Movement control through directional buttons to control the robot.
+  -Through directional buttons to control the robot.
+
 - **🤖 Mechanical Arm Operations**
-- Movement tab: Controls vertical and forward/backward arm movement  
-- Clamp tab: Controls the clamp for cutting, releasing, and rotation
+ - Movement tab: Controls vertical and forward/backward arm movement  
+ - Clamp tab: Controls the clamp for cutting, releasing, and rotation
+- 
 - **📷 Live Camera and Screenshots**
-- Displays the robot’s live video stream  
-- Camera control buttons for up/down movement  
-- Supports timestamped screenshots with a scrolling gallery
+ - Displays the robot’s live video stream  
+ - Camera control buttons for up/down movement  
+ - Supports timestamped screenshots with a scrolling gallery
+- 
 - **📊 System Status**
-- Distance measurements from the ultrasonic sensor via gauge  
-- System resource monitoring: Battery information/CPU temperature and usage/RAM usage/Swap memory usage
+ - Distance measurements from the ultrasonic sensor via gauge  
+ - System resource monitoring: Battery information/CPU temperature and usage/RAM usage/Swap memory usage
 
 
 ---
