@@ -1,0 +1,2 @@
+/usr/local/lib/libcam2opencv.a
+/usr/local/include/libcam2opencv.h

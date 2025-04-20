@@ -1,0 +1,59 @@
+#ifndef __COMMAND_GROUP__
+#define __COMMAND_GROUP__
+
+#define PING 0x01
+#define READ 0x02
+#define WRITE 0x03
+#define REG_WRITE 0x04
+#define REG_ACTION 0x05
+#define SYNC_READ 0x82
+#define SYNC_WRITE 0x83
+
+#define	SERIAL_1M       0
+#define	SERIAL_0_5M     1
+#define	SERIAL_250K     2
+#define	SERIAL_128K     3
+#define	SERIAL_115200   4
+#define	SERIAL_76800    5
+#define	SERIAL_57600    6
+#define	SERIAL_38400    7
+
+//内存表定义
+//-------EPROM(只读)--------
+#define SERIAL_VERSION_L 3
+#define SERIAL_VERSION_H 4
+
+//-------EPROM(读写)--------
+#define SERIAL_ID 5
+#define SERIAL_BAUD_RATE 6
+#define SERIAL_MIN_ANGLE_LIMIT_L 9
+#define SERIAL_MIN_ANGLE_LIMIT_H 10
+#define SERIAL_MAX_ANGLE_LIMIT_L 11
+#define SERIAL_MAX_ANGLE_LIMIT_H 12
+#define SERIAL_CW_DEAD 26
+#define SERIAL_CCW_DEAD 27
+
+//-------SRAM(读写)--------
+#define SERIAL_TORQUE_ENABLE 40
+#define SERIAL_GOAL_POSITION_L 42
+#define SERIAL_GOAL_POSITION_H 43
+#define SERIAL_GOAL_TIME_L 44
+#define SERIAL_GOAL_TIME_H 45
+#define SERIAL_GOAL_SPEED_L 46
+#define SERIAL_GOAL_SPEED_H 47
+#define SERIAL_LOCK 48
+
+//-------SRAM(只读)--------
+#define SERIAL_PRESENT_POSITION_L 56
+#define SERIAL_PRESENT_POSITION_H 57
+#define SERIAL_PRESENT_SPEED_L 58
+#define SERIAL_PRESENT_SPEED_H 59
+#define SERIAL_PRESENT_LOAD_L 60
+#define SERIAL_PRESENT_LOAD_H 61
+#define SERIAL_PRESENT_VOLTAGE 62
+#define SERIAL_PRESENT_TEMPERATURE 63
+#define SERIAL_MOVING 66
+#define SERIAL_PRESENT_CURRENT_L 69
+#define SERIAL_PRESENT_CURRENT_H 70
+
+#endif
