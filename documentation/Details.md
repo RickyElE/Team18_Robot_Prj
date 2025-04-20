@@ -101,7 +101,20 @@ Battery information,CPU temperature/usage, RAM info/ Swap info
 ## 3 Software Structure
 
 ### 3.1 Callback and Events
-In sensor reading and system info reading
+- We use **timerfd** to build a timer to enable the sensor to read information at regular intervals. Then, we register it through a **callback**. When the **timer event** is triggered, the callback function will be called to read the sensor information and save it for use by the get function to obtain the information.
+
+### 3.2 Delay
+- We use **timerfd** to implement the **delay** function. Compared with **usleep** and **std::this_thread::sleep_for**, this way, waiting can be achieved without blocking the thread, and it is **highly accurate**, **stable** and **anti-jitter**.
+
+### 3.3 Avoiding Memory leaking
+- Every time a thread, function or variable is created, we will release it, like:
+``` bash
+temp_thread = thread(function, this);
+
+if (temp_thread.joinable()){
+    temp_thread.join();
+}
+```
 
 ## 4 Team 
 ### 4.1 Collaborator
