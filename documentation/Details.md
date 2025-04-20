@@ -46,20 +46,53 @@ The streaming process follows these steps:
 - Thread locks (mutexes) make sure the video frames stay complete when multiple parts of the program try to use them at the same time.
 
 ### 2.4 Website Server
-The UI remains responsive and continuously updates via **WebSocket**, allowing two-way data exchange between the browser and the robot. Movement commands are sent instantly when buttons are pressed, and sensor data updates are received in **real time**. This ensures low-latency control and live system monitoring without the need to refresh the page.
+The UI remains responsive and continuously updates via **WebSocket**, allowing two-way data exchange between the browser and the robot. This ensures low-latency control and live system monitoring without the need to refresh the page.
 
+**Remote Control System Integration :** 
+The remote control system integrates frontend JavaScript with backend C++ code through WebSocket communication, creating a complete control loop for the robot's operation.Movement commands are sent instantly when buttons are pressed, and sensor data updates are received in real time.
+
+1️⃣**WebSocket Connection Establishment**:  
+- Main.cpp launches WebSocket server on port 8084
+- Browser connects to server using **WebSocket('ws://192.168.1.100:8084')**
+- Bidirectional communication channel established for control and monitoring
+
+
+2️⃣**Command Transmission**:
+- User interactions captured by JavaScript event listeners
+- Commands formatted as for example **JSON: {type: "command", action: "move_forward"}** 
+action: Defines the specific control action.
+- WebSocket transmits commands to robot controller
+
+3️⃣**Feedback Loop**
+- Robot hardware executes commands through control functions
+- Sensor data collected and sent back via same WebSocket connection
+- UI updates in real-time to display current robot status and camera feed
+
+
+
+
+**💬USER INTERFACE:**
 Accessible via any web browser, the UI displays:
 
-- **Login System Interface**  
-  Users must log in with a username and password:  
+- **Login System Interface**  : Users must log in with a username and password:  
   - Username/Password: `robot`  
 
-- **Movement Controls**  
-  - Directional buttons are used to control the robot’s 
+- **Movement Controls** : Directional buttons are used to control the robot’s 
 
-- **Mechanical Arm Operations**  
+- **Mechanical Arm Operations** : 
     - Movement Tab:Controls vertical and forward/backward arm motion  
     - Clamp Tab: Controls the clamp for cutting, releasing, and rotation
+
+- **Live Camera and Screenshots** : 
+    
+  - Real-time camera video stream  
+  - Camera control buttons for up/down movement  
+  - Screenshot capture with timestamps and a scrolling gallery
+
+- **System Status**  :
+  - Distance readings via ultrasonic sensor (gauge display)  
+  - System resource stats: 
+Battery information,CPU temperature/usage, RAM info/ Swap info
 
 - **Live Camera and Screenshots**  
     
