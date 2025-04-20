@@ -101,6 +101,23 @@ public:
         return times;
     }
 
+    double getMemUsage(){
+        return this->memUsage;
+    }
+
+    void setMemUsage(double usage){
+        this->memUsage = usage;
+    }
+
+    double getSwapUsage(){
+        return this->swapUsage;
+    }
+
+    void setSwapUsage(double usage){
+        this->swapUsage = usage;
+    }
+    
+
 private:
     systemInfo type;
 
@@ -109,8 +126,10 @@ private:
     std::atomic_bool running_;
     int timer_fd_;
     uint64_t value;
-    double tempture;
-    double cpuUsage;
+    double tempture = 0.0;
+    double cpuUsage = 0.0;
+    double memUsage = 0.0;
+    double swapUsage = 0.0;
 
     CpuTimes cputimes_1;
     CpuTimes cputimes_2;
@@ -123,12 +142,25 @@ class Mycallback:public SystemInfo::SysInfoCallbackInterface{
         SystemInfo *systeminfo = nullptr;
         virtual void hasSampled(double value) override{
             if (nullptr != systeminfo){
-                if (systeminfo->getSystemInfoType() == systemInfo::CPU_TEMP){
-                    systeminfo->setCPUTemputure(value);
-                }
-                else
-                if  (systeminfo->getSystemInfoType() == systemInfo::CPU_USAGE){
-                    systeminfo->setCpuUsage(value);
+                switch (systeminfo->getSystemInfoType()){
+                    case systemInfo::CPU_TEMP:{
+                        systeminfo->setCPUTemputure(value);
+                        break;
+                    }
+                    case systemInfo::CPU_USAGE:{
+                        systeminfo->setCpuUsage(value);
+                        break;
+                    }
+                    case systemInfo::RAM_USAGE:{
+                        systeminfo->setMemUsage(value);
+                        break;
+                    }
+                    case systemInfo::SWAP_USAGE:{
+                        systeminfo->setSwapUsage(value);
+                        break;
+                    }
+                    default:
+                        break;
                 }
             }
         }

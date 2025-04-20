@@ -1,0 +1,9 @@
+.vscode/
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+.cache/
+.DS_Store  # macOS
+Thumbs.db   # Windows

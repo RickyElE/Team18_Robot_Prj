@@ -62,17 +62,13 @@ auto SystemInfo::readSysInfo(){
                 file >> temp;
                 file.close();
                 temp/=1000.0;
-                std::cout << "Value in readSysInfo is: " << temp << std::endl;
+                // std::cout << "Value in readSysInfo is: " << temp << std::endl;
                 return temp;
             }
             else{
-                std::cerr << "无法读取温度文件！" << std::endl;
+                std::cerr << "cannot read temperature file!" << std::endl;
             }
         }
-        // case systemInfo::GPU_TEMP:{
-            
-        // }
-
         case systemInfo::CPU_USAGE:{
             cputimes_1 = getCpuTimes();
             delay.delay_ms(1000);
@@ -84,11 +80,52 @@ auto SystemInfo::readSysInfo(){
         }
         
         case systemInfo::GPU_USAGE:
-        case systemInfo::RAM_USAGE:
-        case systemInfo::SWAP_USAGE:
             break;
+        case systemInfo::RAM_USAGE:{
+            std::ifstream memInfo("/proc/meminfo");
+            std::string line;
+            uint64_t memTotal, memAvailable = 0;
+
+            while (std::getline(memInfo, line)){
+                if (line.rfind("MemTotal:", 0) == 0){
+                    sscanf(line.c_str(), "MemTotal: %ld kB", &memTotal);
+                }
+                else
+                if (line.rfind("MemAvailable: ", 0) == 0){
+                    sscanf(line.c_str(), "MemAvailable: %ld kB", &memAvailable);
+                    break;
+                }
+            }
+
+            if (memTotal == 0) return 0.0;
+
+            uint64_t memUsed = memTotal - memAvailable;
+            return (double) memUsed / memTotal * 100.0;
+        }
+        case systemInfo::SWAP_USAGE:{
+            std::ifstream meminfo("/proc/meminfo");
+            std::string line;
+            uint64_t swapTotal = 0, swapFree = 0;
+        
+            while (std::getline(meminfo, line)) {
+                if (line.rfind("SwapTotal:", 0) == 0) {
+                    sscanf(line.c_str(), "SwapTotal: %ld kB", &swapTotal);
+                } else if (line.rfind("SwapFree:", 0) == 0) {
+                    sscanf(line.c_str(), "SwapFree: %ld kB", &swapFree);
+                    break;
+                }
+            }
+            // std::cout << "swapTotal: " << swapTotal << " ,swapFree: " << swapFree << std::endl;
+            if (swapTotal == 0) return 0.0;
+            
+            uint64_t swapUsed = swapTotal - swapFree;
+            return (double)swapUsed / swapTotal * 100.0;
+        }
+        default:
+            return 0.0;
             
     }
+    return 0.0;
 }
 
 
