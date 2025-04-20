@@ -1,4 +1,0 @@
-struct BatteryMsg{
-    double voltage;
-    double percentage;
-};

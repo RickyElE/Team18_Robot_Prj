@@ -1,4 +1,0 @@
-struct ChassisMsg{
-    double battery_percentage;
-    double battery_voltage;
-};

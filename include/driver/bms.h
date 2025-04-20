@@ -63,9 +63,11 @@ public:
         std::cout << "ADS7830 Initial!" << std::endl;
     };
     ~ADS7830(){
-        stop();
+        std::cout << "ADS7830 has been deleted!" << std::endl;
+        // stop();
     };
     bool start(int interval_ms = 1000){
+        std::cout << "ADS7830 has been started!" << std::endl;
         if (timer_fd_ != -1){
             std::cerr << "Timer already running!" << std::endl;
             return false;
@@ -95,9 +97,14 @@ public:
     }
     void stop(){
         running_ = false;
+        
         if (worker_.joinable()){
             worker_.join();
         }
+        close(timer_fd_);
+        timer_fd_ = -1;
+        close(i2c_fd);
+        std::cout << "ADS7830 has stopped!" << std::endl;
 
     }
     void registerCallback(ADSCallbackInterface* cb){
@@ -163,18 +170,21 @@ private:
 
 class BMS : public ADSCallbackInterface{
 private:
-    const double vol_max = 8.4;
-    const double vol_min = 6.0;
+    const double vol_max = 6.2;
+    const double vol_min = 5;
     double voltage = 0;
     double percentage_ = 0;
     ADS7830 ads_;
 public:
     BMS(){
         std::cout << "BMS Initial!" << std::endl;
-        ads_.registerCallback(this);
     };
-    ~BMS(){};
+    ~BMS(){
+        std::cout << "BMS has been deleted!" << std::endl;
+        this->stop();
+    };
     void start(int interval_ms = 1000){
+        ads_.registerCallback(this);
         ads_.start(interval_ms);
     }
     void stop(){
@@ -200,6 +210,9 @@ private:
 void BMS::setPercentage(){
     // this->percentage = (this->voltage / this->vol_max) * 100;
     double percentage = ((this->voltage - this->vol_min) / (this->vol_max - this->vol_min)) * 100;
+    if (percentage >= 100.0){percentage = 100.0;}
+    else if (percentage <= 0.0){percentage = 0.0;}
+    
     this->percentage_ = percentage;
 }
 void BMS::setVoltage(uint16_t raw_data){
@@ -229,6 +242,8 @@ void BMS::showPercentage(){
 double BMS::getPercentage(){
     // this->percentage_ = (this->voltage / this->vol_max) * 100;
     double percentage = ((this->voltage - this->vol_min) / (this->vol_max - this->vol_min)) * 100;
+    if (percentage >= 100.0){percentage = 100.0;}
+    else if (percentage <= 0.0){percentage = 0.0;}
     this->percentage_ = percentage;
 #ifdef DEBUG
     std::cout << "Percentage is:" << this->percentage << "%" << std::endl;

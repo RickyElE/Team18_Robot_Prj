@@ -27,6 +27,7 @@ bool PCA9685::init(){
 }
 
 PCA9685::~PCA9685(){
+    std::cout << "PCA9685 Release" << std::endl;
     if (i2c_fd >= 0){
         close(i2c_fd);
     }

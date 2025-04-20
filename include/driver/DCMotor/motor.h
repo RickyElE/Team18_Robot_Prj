@@ -18,7 +18,15 @@ public:
     void Forward();
     void Backward();
     void Stop();
+    void TurnLeft();
+    void TurnRight();
+    void FastForward();
+    void FastBackward();
+    void FastTurnLeft();
+    void FastTurnRight();
     void setServoPulse(uint8_t channel, double pulse);
+    void Wakeup();
+    void Sleep();
 private:
     uint8_t MOTOR_RIGHT_1 = 14;
     uint8_t MOTOR_RIGHT_2 = 15;
