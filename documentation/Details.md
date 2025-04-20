@@ -24,7 +24,31 @@ The Plant Proetction Robot is a guarder which be used to check the status of the
 ### 2.3 Video Streaming 
 
 ### 2.4 Website Server
----
+The UI remains responsive and continuously updates via **WebSocket**, allowing two-way data exchange between the browser and the robot. Movement commands are sent instantly when buttons are pressed, and sensor data updates are received in **real time**. This ensures low-latency control and live system monitoring without the need to refresh the page.
+
+Accessible via any web browser, the UI displays:
+
+- **Login System Interface**  
+  Users must log in with a username and password:  
+  - Username/Password: `robot`  
+
+- **Movement Controls**  
+  - Directional buttons are used to control the robot’s 
+
+- **Mechanical Arm Operations**  
+    - Movement Tab:Controls vertical and forward/backward arm motion  
+    - Clamp Tab: Controls the clamp for cutting, releasing, and rotation
+
+- **Live Camera and Screenshots**  
+    
+  - Real-time camera video stream  
+  - Camera control buttons for up/down movement  
+  - Screenshot capture with timestamps and a scrolling gallery
+
+- **System Status**  
+  - Distance readings via ultrasonic sensor (gauge display)  
+  - System resource stats: 
+Battery information,CPU temperature/usage, RAM info/ Swap info
 ## 3 Software Structure
 
 ### 3.1 Callback and Events
