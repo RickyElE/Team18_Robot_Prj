@@ -44,6 +44,7 @@ A browser interface for real-time robot control and monitoring using **WebSocket
 
 > *Note: The Adeept HAT is not suitable for Raspberry Pi 5 due to insufficient power delivery when driving multiple servos. This project uses a separate power system and serial servos to ensure stability.*
 
+_**More details can be found here: [Details](documentation/Details.md)**_
 ---
 
 ### Software Architecture
