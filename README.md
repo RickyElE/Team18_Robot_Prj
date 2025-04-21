@@ -94,9 +94,9 @@ PlantProtectionRobot/
 ### Setup & Usage
 
 #### Requirements
-	•	Raspberry Pi 5 (Raspberry Pi OS 64-bit recommended)
-	•	libcamera enabled and configured
-	•	Network access on the same LAN
+- Raspberry Pi 5 (Raspberry Pi OS 64-bit recommended)
+- libcamera enabled and configured
+- Network access on the same LAN
 
 #### Dependencies
 ``` bash
@@ -163,6 +163,6 @@ See our robot in action on Instagram:
 **Adeept Robot Kit**: https://www.adeept.com/rasptank_p0121.html
 
 
-# See You Next Time
+# See You Next Time!
                        
 
