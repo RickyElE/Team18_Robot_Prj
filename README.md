@@ -1,5 +1,6 @@
 # Team18 Real-Time Embedded Project
 _**Below is a concise overview of the project. For more information, please refer to the detailed technical documentation here： [Technical Report](documentation/Technical_Report.md)**_
+
 _**The related demo video can be found here.[Video](video_demo.mp4)**_
 ## **Plant Protection Robot**
 
