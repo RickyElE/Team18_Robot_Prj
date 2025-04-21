@@ -163,6 +163,16 @@ See our robot in action on Instagram:
 ### Link
 **Adeept Robot Kit**: https://www.adeept.com/rasptank_p0121.html
 
+### License
+
+This project is licensed under the GNU General Public License v2.0 (GPL-2.0).  
+See the [LICENSE](LICENSE) file for full details.
+
+The including components from projects licensed under GPL-2.0:
+
+- [libcamera2opencv] - GPL-2.0 - https://github.com/berndporr/libcamera2opencv/tree/master
+
+As a result, the combined work is subject to the terms of the GPL-2.0 license.  
 
 # See You Next Time!
                        
