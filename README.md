@@ -2,7 +2,7 @@
 _**Below is a concise overview of the project. For more information, please refer to the detailed technical documentation here： [Technical Report](documentation/Technical_Report.md)**_
 ## **Plant Protection Robot**
 
-A smart agricultural robot based on **Raspberry Pi 5** and the **Adeept robot kit**, designed for remote plant monitoring, pest deterrence, obstacle detection, and web-based control. The system leverages **event-driven architecture**, efficient I/O scheduling, and multi-protocol hardware interfaces to achieve reliable and responsive operation.
+A smart agricultural robot based on **Raspberry Pi 5** and the **Adeept robot kit**, designed for **remote plant monitoring**, **picking the ripe fruits**, **pest deterrence**, **obstacle detection**, and **web-based control**. The system leverages **event-driven architecture**, efficient I/O scheduling, and multi-protocol hardware interfaces to achieve reliable and responsive operation.
 
 ![Robot Image](images/WechatIMG803.jpg)
 
@@ -13,7 +13,7 @@ A smart agricultural robot based on **Raspberry Pi 5** and the **Adeept robot ki
 - **Real-time Video Monitoring**  
   Uses the Raspberry Pi Camera v2 with the open-source library [libcamera2opencv](https://github.com/berndporr/libcamera2opencv) to capture frames and convert them directly into OpenCV cv::Mat format. These frames are then streamed as MJPEG via an embedded HTTP server.
 
-- **Pest Deterrence with Smart Arm**  
+- **Pest Deterrence and Picking fruits with Smart Arm**  
   Controls a 4-DOF robotic arm powered by **Waveshare serial bus servos**, communicating via **USB serial** for improved power stability and precise movements.
 
 - **Sensor Data via Event-Driven Timers**  

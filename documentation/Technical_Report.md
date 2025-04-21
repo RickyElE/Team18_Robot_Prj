@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 ### 1.1 What is it?
-The Plant Proetction Robot is a guarder which be used to check the status of the plants when people do not want to work outside. Then people can remote control it to check the plant and do something else, such as cutting branches and leaves. This robot is based on **Adeept's ADR013 robot kit**: https://www.adeept.com/rasptank_p0121.html, and the **Raspberry Pi 5** with **RaspberryPi OS**. We will use the robot kit and pi to develop our coding and logic, therefore finishing our target of Plant Proetction.
+The Plant Proetction Robot is a guarder which be used to check the status of the plants when people do not want to work outside. Then people can remotely control it to **monitor** and **inspect** the plant conditions. They can also use the **robotic arm** to **drive away pests**, **cut off yellow leaves** and **pick fruits**. This robot is based on **Adeept's ADR013 robot kit**: https://www.adeept.com/rasptank_p0121.html, and the **Raspberry Pi 5** with **RaspberryPi OS**. We will use the robot kit and pi to develop our coding and logic, therefore finishing our target of Plant Proetction.
 
 ## 2. Robot Structure
 
