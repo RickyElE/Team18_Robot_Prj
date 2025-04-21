@@ -115,21 +115,35 @@ if (temp_thread.joinable()){
     temp_thread.join();
 }
 ```
+## 4 Current Limitations & Areas for Improvement
+### 4.1 Software:
+- **Limited autonomy**: The robot currently lacks autonomous navigation or mapping capabilities (e.g., SLAM), and relies on manual control via the web interface.
+- **High CPU usage**: The current implementation of the main control program results in high CPU usage on the Raspberry Pi 5, which can affect overall system responsiveness.
+- **MJPEG streaming performance**: The HTTP server responsible for video streaming occasionally experiences stuttering or latency during transmission, especially under load.
+- **HTTP server complexity**: Starting the HTTP server and integrating it with the rest of the system currently requires multiple steps and lacks automation.
+- **Lack of visual intelligence**: Currently, pest deterrence relies on manual control. Future versions should include image recognition to detect insects and respond autonomously.
+- **Arm movement precision**: The robotic arm’s current control algorithm is basic. Improvements are needed for accurate positioning and targeted pest removal.
+- **Unresolved bugs**: Several known issues remain in the codebase that may affect stability or edge-case behavior and need to be addressed in future iterations.
+### 4.2 Hardware:
+- **Power system upgrade planned**: It is necessary to replace the current HAT with a more advanced board that:
+  - Supports USB Power Delivery (PD) input
+  - Integrates voltage regulation circuitry
+  - Charges rechargeable lithium batteries
+  - Drives multiple servo motors without voltage drops
 
-## 4 Team 
-### 4.1 Collaborator
+## 5 Team 
+### 5.1 Collaborator
 Leader - Zhihong Xu
 
 Collaborator - YUWEN WANG, Guining Zhang, Guankai Wang, JUIHSIN CHANG
 
-### 4.2 The Arrangement
+### 5.2 The Arrangement
 Chassis & System Structure - Zhihong Xu
 
 Robotic Arm - Guankai Wang, Guining Zhang
 
 Vision & Communication - YUWEN WANG, JUIHSIN CHANG
 
-## 
 
 
                        
