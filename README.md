@@ -1,6 +1,6 @@
 # Team18 Real-Time Embedded Project
 _**Below is a concise overview of the project. For more information, please refer to the detailed technical documentation here： [Technical Report](documentation/Technical_Report.md)**_
-_**The related demo video can be found here.[Video](video_demo.md)**_
+_**The related demo video can be found here.[Video](video_demo.mp4)**_
 ## **Plant Protection Robot**
 
 A smart agricultural robot based on **Raspberry Pi 5** and the **Adeept robot kit**, designed for **remote plant monitoring**, **picking the ripe fruits**, **pest deterrence**, **obstacle detection**, and **web-based control**. The system leverages **event-driven architecture**, efficient I/O scheduling, and multi-protocol hardware interfaces to achieve reliable and responsive operation.
