@@ -274,19 +274,19 @@ function handleDirection(direction) {
     let currentDistance = parseInt(document.getElementById('distance-text').textContent);
     let moveInterval = null;
 
-    if (direction === 'Forward') {
+    if (direction === 'forward') {
         window.robotSocket.send(JSON.stringify({type:"command", action: "move_forward"}));
     } 
     else 
-    if (direction === 'Backward') {
+    if (direction === 'back') {
         window.robotSocket.send(JSON.stringify({type:"command", action: "move_back"}));
     }
     else 
-    if (direction === 'Left') {
+    if (direction === 'left') {
         window.robotSocket.send(JSON.stringify({type:"command", action: "move_left"}));
     }
     else 
-    if (direction === 'Right') {
+    if (direction === 'right') {
         window.robotSocket.send(JSON.stringify({type:"command", action: "move_right"}));
     }
      // Random distance change for demo purposes
@@ -779,14 +779,21 @@ window.addEventListener('load', function() {
     if (captureButton) captureButton.addEventListener('click', captureScreenshot);
     
     // Initialize direction controls
-    // 20250403 Adding Direction Button Logic
     Object.entries(directionButtons).forEach(([direction, button]) => {
         if (button) {
-            button.addEventListener('mousedown', () => handleDirection(direction));
-            button.addEventListener('mouseup', () => {
-                this.window.robotSocket.send(JSON.stringify({ type: "command", action: "stop" }));
-            })
-
+            button.addEventListener('mousedown', function (event){
+                if (event.button === 0){
+                    handleDirection(direction);
+                    console.log('mousedown');
+                }
+            });
+            button.addEventListener('mouseup', function (event){
+                if (event.button === 0){
+                    console.log('mouseup');
+                    window.robotSocket.send(JSON.stringify({ type: "command", action: "stop" }));
+                }
+            });
+    
             button.addEventListener('touchstart', () => handleDirection(direction));
             button.addEventListener('touchend', () => {
                 window.robotSocket.send(JSON.stringify({ type: "command", action: "stop" }));
@@ -819,13 +826,40 @@ window.addEventListener('load', function() {
         if (action) {
             pressedKeys.delete(event.key);
             console.log(`Key up: ${event.key} → stop`);
-            window.robotSocket.send(JSON.stringify({ type: "command", action: "stop" }));
+            robotSocket.send(JSON.stringify({ type: "command", action: "stop" }));
         }
     });
     
     // Initialize camera movement controls
-    if (cameraUpButton) cameraUpButton.addEventListener('click', () => handleCameraMove('up'));
-    if (cameraDownButton) cameraDownButton.addEventListener('click', () => handleCameraMove('down'));
+    if (cameraUpButton){
+        cameraUpButton.addEventListener('mousedown', function(event){
+            if (event.button === 0){
+                handleCameraMove('up');
+            }
+        });
+        // cameraUpButton.addEventListener('click', () => handleCameraMove('up'));
+        cameraUpButton.addEventListener('mouseup', function(event){
+            if (event.button === 0){
+                console.log("camera_move_stop");
+                window.robotSocket.send(JSON.stringify({ type: "command", action: "camera_move_stop" }));
+            }
+        })
+    }
+        
+    if (cameraDownButton){
+        cameraDownButton.addEventListener('mousedown', function(event){
+            if (event.button === 0){
+                handleCameraMove('down');
+            }
+        });
+        // cameraUpButton.addEventListener('click', () => handleCameraMove('up'));
+        cameraDownButton.addEventListener('mouseup', function(event){
+            if (event.button === 0){
+                console.log("camera_move_stop");
+                window.robotSocket.send(JSON.stringify({ type: "command", action: "camera_move_stop" }));
+            }
+        })
+    }
     
     // Initialize mechanical arm tab controls
     setupMechanicalArmTabs();
