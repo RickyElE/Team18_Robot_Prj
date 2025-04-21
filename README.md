@@ -105,7 +105,7 @@ sudo apt install libopencv-dev libgpiod-dev libwebsocketpp-dev libboost-all-dev 
 ```
 
 ``` bash
-# Clone and build libcamera2opencv (required for image capture)
+# Clone and build libcamera2opencv (required for video streaming)
 
 git clone https://github.com/berndporr/libcamera2opencv.git
 cd libcamera2opencv
@@ -123,6 +123,10 @@ mkdir build && cd build
 cmake ../
 make
 ./main
+```
+Then you need to open the website folder and execute the command:
+``` bash
+cd ../website
 python3 -m http.server 8085
 ```
 
