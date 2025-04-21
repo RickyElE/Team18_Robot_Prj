@@ -21,6 +21,37 @@ The Plant Proetction Robot is a guarder which be used to check the status of the
 
 ### 2.2 Robotic Arm
 
+#### 2.2.1 Algorithm Refinement
+
+- **Version 1**  
+
+We simplified the robotic arm as shown in figure below, treating the gripper as the end of link AB (i.e., point A). The entire motion of point A is achieved by controlling motors B and C.
+
+<img src="https://github.com/RickyElE/Team18_Robot_Prj/raw/main/images/FigureA.jpg" alt="FigureA" width="500" height="300"/>
+
+Initially, we planned to establish a 2D coordinate system with point C as the origin, aiming to achieve horizontal and vertical movements of point A within this coordinate system. Therefore, we developed the following algorithm: assuming the coordinates of point A are (xA, yA), the target position for horizontal movement is A' (xA + δx, yA), and for vertical movement, it is A' (xA, yA + δy).
+
+<img src="https://github.com/RickyElE/Team18_Robot_Prj/raw/main/images/FigureB.jpg" alt="FigureB" width="500" height="300"/>
+
+
+Therefore, the motion of the robotic arm is essentially a mathematical problem-solving process. Taking vertical movement as an example, the algorithm is illustrated as follows: as shown in the figure above, given the coordinates of A', the lengths of links AB and BC, and the distance A'C, we can use the Law of Cosines to calculate the angle ∠A'BC (denoted as θ₂). Since the coordinates of A' are known, angle ∠A'CB can be calculated geometrically. Then, by applying the Law of Cosines again, we can compute angle ∠A'CB'. The difference between ∠A'CB and ∠A'CB' gives angle ∠B'CB (denoted as θ₁). By rotating motors B and C to angles θ₁ and θ₂ respectively, point A can move from (xA, yA) to A' (xA, yA + δy). The implementation code can be found in Appendix 1 (note: the original code is not uploaded to GitHub, as it was later replaced with an improved algorithm).
+
+- **Version 2**  
+
+After implementing the previous version of the algorithm, we found through continuous testing that, although we achieved horizontal and vertical movements of the robotic arm's end-effector from a mathematical perspective, such movements did not hold much practical value for the task of branch pruning. In essence, the algorithm merely enabled simple horizontal or vertical displacement of point A, the end-effector, without contributing meaningfully to the actual task.As shown in the figure below, due to the mechanical characteristics of the robotic arm, if we attempt to lift the end-effector from point A to point A′ for pruning, the previous algorithm may result in a configuration like A′B′C. Therefore, the algorithm is not suitable for solving our practical problem. Based on this observation, we developed a second version of the algorithm.
+
+<img src="https://github.com/RickyElE/Team18_Robot_Prj/raw/main/images/FigureC.jpg" alt="FigureC" width="400" height="300"/>
+
+As shown in the figure below, our goal is to ensure that the angle between link AB and the horizontal direction remains constant, regardless of the movement of link BC. In practical operation, we first use “Forward” and “Backward” commands to control link BC to approach the target point. During this process, the angle between link AB and the horizontal remains unchanged. Once the arm is near the target point, we can adjust the angle between AB and the horizontal using the “HeadUp” or “HeadDown” commands to find an appropriate angle for branch pruning.
+
+To achieve this type of movement, our algorithm is as follows: as shown in the figure, since θ₁ is the angle between link BC and the horizontal, and due to the equality of alternate interior angles between parallel lines, the angle marked in red is also equal to θ₁. Therefore, we obtain: θ₂ = θ₁ + Δθ. From this, we find that θ₂ - θ₁ = Δθ, where Δθ represents the angle between link AB and the horizontal. By implementing this mathematical relationship, we successfully completed the motion algorithm for the robotic arm.
+
+<img src="https://github.com/RickyElE/Team18_Robot_Prj/raw/main/images/FigureD.jpg" alt="FigureD" width="500" height="300"/>
+
+#### 2.2.2 Hardware Update
+
+In the beginning, we used motors that only supported open-loop control, meaning there was no real-time position feedback. Combined with insufficient output torque, this often caused the robotic arm to fall or move in ways that did not match expectations. To address this, we replaced them with improved motors that provide position feedback. However, during implementation, we discovered that the feedback from these motors was highly inaccurate, making full closed-loop control still unfeasible. As a result, in our final version of the code, we adopted a semi-closed-loop control strategy, in which the position is read only at fixed intervals. We believe that with better hardware in the future, full closed-loop control can be achieved, leading to higher accuracy and improved performance.
+
 ### 2.3 Video Streaming 
 The video streaming system utilizes LibCamera integrated with OpenCV and a web-based interfaced to deliver real-time visual feedback from the robot.
 
@@ -144,6 +175,192 @@ Robotic Arm - Guankai Wang, Guining Zhang
 
 Vision & Communication - YUWEN WANG, JUIHSIN CHANG
 
+## 6 Appendix
+### Code Implementation of the Initial Version of the Robotic Arm Algorithm：
+```cpp
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <cmath>
+#include <iomanip>
+#include <cstdint>
+#include "PCA9685.h"
+#include "delay.h"
 
+// class roboarm encapsulates PCA9685 control and movement logic
+class roboarm {
+public:
 
-                       
+    Delay delay;
+
+    // Internal 2D point struct for storing key joint positions
+    struct Point2D {
+        double x;
+        double y;
+    };
+
+    // Constructor with optional I2C address of PCA9685 (default: 0x5f)
+    roboarm(uint8_t addr = 0x5f) : pca(addr) {
+        // Set initial position (corresponding to init_position())
+        initPosition();
+        // current_C is fixed at the origin
+        current_C = {0, 0};
+    }
+
+    ~roboarm() {
+        // Destructor clears all channel signals to stop PWM output on exit
+        clearAllChannels();
+    }
+
+    // Initialize PCA9685 and configure PWM frequency
+    bool init() {
+        if (!pca.init()) {
+            std::cerr << "Failed to initialize PCA9685!" << std::endl;
+            return false;
+        }
+        // Set PWM frequency to 50Hz, suitable for servos
+        pca.setPWMFreq(50);
+        // Clear all channels
+        clearAllChannels();
+        pca.wakeup();
+        return true;
+    }
+
+    // Set servo angle on the specified channel (range: 0~180 degrees)
+    void setAngle(int channel, double angle) {
+        // Servo parameters (unit: microseconds)
+        const int min_pulse = 500;
+        const int max_pulse = 2400;
+        const int actuation_range = 180; // Servo motion range
+
+        // Calculate pulse width based on angle
+        int pulse = min_pulse + (max_pulse - min_pulse) * angle / actuation_range;
+        // PCA9685 resolution is 4096, at 50Hz the period is 20000 microseconds
+        int ticks = static_cast<int>((pulse / 20000.0) * 4096);
+        // Set PWM output for the channel (on=0, off=ticks)
+        pca.setPWM(channel, 0, ticks);
+    }
+
+    // Clear all PWM signals on all channels (stop output)
+    void clearAllChannels() {
+        const int NUM_CHANNELS = 16;
+        for (int channel = 0; channel < NUM_CHANNELS; channel++) {
+            pca.setPWM(channel, 0, 0);
+        }
+    }
+
+    // Initialize robotic arm to default position (startup pose)
+    void initialRobarm() {
+        setAngle(0, 180);
+        delay.delay_ms(2000);
+        setAngle(1, 180);
+        delay.delay_ms(2000);
+        setAngle(2, 90);
+        delay.delay_ms(2000);
+        setAngle(3, 100);
+        delay.delay_ms(2000);
+    }
+
+    // Initialize joint positions of the robotic arm (corresponds to init_position() in Python)
+    void initPosition() {
+        current_A = { -29.64, 28.5 };
+        current_B = { -79, 0 };
+        current_C = { 0, 0 };
+    }
+
+    // Calculate target angles based on displacement and update internal state
+    // Parameters deltaX and deltaY represent horizontal and vertical displacement
+    // len_AB and len_BC are the link lengths of the robotic arm
+    std::pair<double, double> angleCalculate(double deltaX, double deltaY, double len_AB = 57.0, double len_BC = 79.0) {
+        // Calculate target position target_A
+        Point2D target_A;
+        target_A.x = current_A.x + deltaX;
+        target_A.y = current_A.y + deltaY;
+        // Calculate distance from current_C to target_A (length of AC)
+        double len_AC = std::sqrt((target_A.x - current_C.x) * (target_A.x - current_C.x) +
+                                  (target_A.y - current_C.y) * (target_A.y - current_C.y));
+        // Calculate theta2 using the Law of Cosines (angle between AB and BC)
+        double theta2 = safeAcos((len_AB * len_AB + len_BC * len_BC - len_AC * len_AC) / (2 * len_AB * len_BC));
+        // Calculate theta1: use atan2 to get direction of target_A, then subtract Law of Cosines result
+        double theta1 = std::atan2(target_A.y, target_A.x) - 
+                        safeAcos((len_BC * len_BC + len_AC * len_AC - len_AB * len_AB) / (2 * len_BC * len_AC));
+        // Adjust angles and convert to degrees
+        double f_angle1 = 180.0 - (theta1 * 180.0 / M_PI);
+        double f_angle2 = 210.0 - (theta2 * 180.0 / M_PI);
+        
+        // Calculate target_B based on theta1 (assume distance to current_C is len_BC)
+        Point2D target_B;
+        target_B.x = len_BC * std::cos(theta1);
+        target_B.y = len_BC * std::sin(theta1);
+        // Update internal state
+        current_A = target_A;
+        current_B = target_B;
+        return std::make_pair(f_angle1, f_angle2);
+    }
+
+    // Move forward: increase x coordinate (deltaY = 0)
+    void moveForward() {
+        auto angles = angleCalculate(3, 0, 57.0, 79.0);
+        std::cout << "[MoveForward] f_angle1: " << angles.first 
+                  << "  f_angle2: " << angles.second << std::endl;
+        setAngle(0, angles.first);
+        delay.delay_ms(500);
+        setAngle(1, angles.second);
+    }
+
+    // Move backward: decrease x coordinate (deltaY = 0)
+    void moveBackward() {
+        auto angles = angleCalculate(-3, 0, 57.0, 79.0);
+        std::cout << "[MoveBackward] f_angle1: " << angles.first 
+                  << "  f_angle2: " << angles.second << std::endl;
+        setAngle(0, angles.first);
+        delay.delay_ms(500);
+        setAngle(1, angles.second);
+    }
+
+    // Move upward: increase y coordinate (deltaX = 0)
+    void moveUp() {
+        auto angles = angleCalculate(0, 30, 57.0, 79.0);
+        std::cout << "[MoveUp] f_angle1: " << angles.first 
+                  << "  f_angle2: " << angles.second << std::endl;
+        // Adjust channel 1 first, then channel 0
+        setAngle(1, angles.second);
+        delay.delay_ms(500);
+        setAngle(0, angles.first);
+        delay.delay_ms(500);
+    }
+
+    // Move downward: decrease y coordinate (deltaX = 0)
+    void moveDown() {
+        auto angles = angleCalculate(0, -3, 57.0, 79.0);
+        std::cout << "[MoveDown] f_angle1: " << angles.first 
+                  << "  f_angle2: " << angles.second << std::endl;
+        setAngle(0, angles.first);
+        delay.delay_ms(500);
+        setAngle(1, angles.second);
+    }
+
+    // Debug method: print current positions of key points
+    void printStatus() {
+        std::cout << "Current_A: (" << current_A.x << ", " << current_A.y << ")" << std::endl;
+        std::cout << "Current_B: (" << current_B.x << ", " << current_B.y << ")" << std::endl;
+        std::cout << "Current_C: (" << current_C.x << ", " << current_C.y << ")" << std::endl;
+    }
+
+private:
+    // safeAcos ensures input stays within [-1, 1] to avoid floating-point errors
+    double safeAcos(double x) {
+        if (x > 1.0) x = 1.0;
+        if (x < -1.0) x = -1.0;
+        return std::acos(x);
+    }
+
+    // Internal variables to store joint positions
+    Point2D current_A;
+    Point2D current_B;
+    Point2D current_C;
+
+    // Internal PCA9685 and delay objects
+    PCA9685 pca;
+    
+};
