@@ -18,12 +18,12 @@
 #define	SERIAL_57600    6
 #define	SERIAL_38400    7
 
-//内存表定义
-//-------EPROM(只读)--------
+//Command List
+//-------EPROM(R)--------
 #define SERIAL_VERSION_L 3
 #define SERIAL_VERSION_H 4
 
-//-------EPROM(读写)--------
+//-------EPROM(RW)--------
 #define SERIAL_ID 5
 #define SERIAL_BAUD_RATE 6
 #define SERIAL_MIN_ANGLE_LIMIT_L 9
@@ -33,7 +33,7 @@
 #define SERIAL_CW_DEAD 26
 #define SERIAL_CCW_DEAD 27
 
-//-------SRAM(读写)--------
+//-------SRAM(RW)--------
 #define SERIAL_TORQUE_ENABLE 40
 #define SERIAL_GOAL_POSITION_L 42
 #define SERIAL_GOAL_POSITION_H 43
@@ -43,7 +43,7 @@
 #define SERIAL_GOAL_SPEED_H 47
 #define SERIAL_LOCK 48
 
-//-------SRAM(只读)--------
+//-------SRAM(R)--------
 #define SERIAL_PRESENT_POSITION_L 56
 #define SERIAL_PRESENT_POSITION_H 57
 #define SERIAL_PRESENT_SPEED_L 58

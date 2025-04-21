@@ -36,18 +36,6 @@ public:
 
 	int Ping(uint8_t Id);
 
-	int syncReadPacketTx(uint8_t Id[], uint8_t IdN, uint8_t memAddr, uint8_t nLen);
-
-	int syncReadPacketRx(uint8_t Id, uint8_t *nDat);
-
-	int syncReadRxPacketToByte();
-
-	int syncReadRxPacketToWord(uint8_t negBit=0);
-
-	void syncReadBegin(uint8_t IdN, uint8_t rxLen);
-
-	void syncReadEnd();
-
 	void feedBytes(const uint8_t* data, int len);
 
 	int16_t getCachedPosition(uint8_t id) const;
@@ -78,12 +66,6 @@ public:
 	uint8_t	level;
 	uint8_t	end;
 	uint8_t	error;
-	uint8_t syncReadRxPacketIndex;
-	uint8_t syncReadRxPacketLen;
-	uint8_t *syncReadRxPacket;
-	uint8_t *syncReadRxBuff;
-	uint16_t syncReadRxBuffLen;
-	uint16_t syncReadRxBuffMax;
 
 protected:
 	virtual int Write2Serial(uint8_t *nDat, int nLen) = 0;
