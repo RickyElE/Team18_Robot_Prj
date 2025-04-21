@@ -1,5 +1,5 @@
 # Team18 Real-Time Embedded Project
-_**Below is a concise overview of the project. For more information, please refer to the detailed technical documentation here： [Technical Report](documentation/Details.md)**_
+_**Below is a concise overview of the project. For more information, please refer to the detailed technical documentation here： [Technical Report](documentation/Technical_Report.md)**_
 ## **Plant Protection Robot**
 
 A smart agricultural robot based on **Raspberry Pi 5** and the **Adeept robot kit**, designed for remote plant monitoring, pest deterrence, obstacle detection, and web-based control. The system leverages **event-driven architecture**, efficient I/O scheduling, and multi-protocol hardware interfaces to achieve reliable and responsive operation.
@@ -72,8 +72,10 @@ A browser interface for real-time robot control and monitoring using **WebSocket
 
 ```bash
 PlantProtectionRobot/
-├── documentation/
+├── documentation/       # Technical Documents
+├── images/              # Project images
 ├── include/             # The Driver Header and Declaration
+├──── camera_server/
 ├──── driver/
 ├────── Camera/
 ├────── DCMotor/
@@ -82,11 +84,15 @@ PlantProtectionRobot/
 ├────── Ultrasonic/
 ├──── bms.h
 ├──── delay.h
-├── src/                 
-├──── main/              # Main Files
+├──── libcam2_node/
+├──── libcamera2opencv-master/
+├── main/                # Main Files
+├── src/                             
 ├──── test/              # Test Files
+├──── website_test/              # Test Files
 ├── website/             # Frontend HTML/CSS/JS
-├── images/              # Project visuals
+├── .clangd
+├── .gitignore
 ├── CMakeLists.txt
 ├── LICENSE
 └── README.md
